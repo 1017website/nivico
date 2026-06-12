@@ -1,0 +1,114 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Frontend
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PromoController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PaymentController;
+
+// Auth
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+
+// Admin
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProduct;
+use App\Http\Controllers\Admin\CategoryController as AdminCategory;
+use App\Http\Controllers\Admin\OrderController as AdminOrder;
+use App\Http\Controllers\Admin\PromoController as AdminPromo;
+use App\Http\Controllers\Admin\MessageController as AdminMessage;
+use App\Http\Controllers\Admin\BankAccountController as AdminBank;
+
+/*
+|--------------------------------------------------------------------------
+| FRONTEND
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+Route::get('/produk', [ProductController::class, 'index'])->name('products.index');
+Route::get('/produk/{product}', [ProductController::class, 'show'])->name('products.show');
+
+Route::get('/promo', [PromoController::class, 'index'])->name('promo');
+Route::get('/tentang', [PageController::class, 'about'])->name('about');
+Route::get('/kontak', [PageController::class, 'contact'])->name('contact');
+Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
+
+// Keranjang
+Route::prefix('keranjang')->name('cart.')->controller(CartController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/add', 'add')->name('add');
+    Route::patch('/{item}', 'update')->name('update');
+    Route::delete('/{item}', 'remove')->name('remove');
+    Route::post('/clear', 'clear')->name('clear');
+    Route::post('/promo', 'applyPromo')->name('promo');
+    Route::delete('/promo/remove', 'removePromo')->name('promo.remove');
+});
+
+// Checkout
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/pesanan/{orderNumber}/sukses', [CheckoutController::class, 'success'])->name('order.success');
+
+// Checkout AJAX (ongkir real-time)
+Route::post('/checkout/destination', [CheckoutController::class, 'searchDestination'])->name('checkout.destination');
+Route::post('/checkout/shipping', [CheckoutController::class, 'calculateShipping'])->name('checkout.shipping');
+
+// Pembayaran
+Route::get('/pembayaran/{orderNumber}', [PaymentController::class, 'show'])->name('payment.show');
+Route::post('/pembayaran/{orderNumber}/bukti', [PaymentController::class, 'uploadProof'])->name('payment.proof');
+// alias agar finish-redirect Midtrans punya nama order.show
+Route::get('/pesanan/{orderNumber}', [PaymentController::class, 'show'])->name('order.show');
+
+// Webhook Midtrans (tanpa CSRF — dikecualikan di bootstrap bila perlu)
+Route::post('/midtrans/notify', [PaymentController::class, 'midtransNotify'])->name('midtrans.notify')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.attempt');
+    Route::get('/register', [RegisterController::class, 'show'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.store');
+});
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('products', AdminProduct::class)->except('show');
+    Route::resource('promos', AdminPromo::class)->except('show');
+
+    Route::get('categories', [AdminCategory::class, 'index'])->name('categories.index');
+    Route::post('categories', [AdminCategory::class, 'store'])->name('categories.store');
+    Route::put('categories/{category}', [AdminCategory::class, 'update'])->name('categories.update');
+    Route::delete('categories/{category}', [AdminCategory::class, 'destroy'])->name('categories.destroy');
+
+    Route::get('orders', [AdminOrder::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [AdminOrder::class, 'show'])->name('orders.show');
+    Route::patch('orders/{order}/status', [AdminOrder::class, 'updateStatus'])->name('orders.status');
+    Route::patch('orders/{order}/verify', [AdminOrder::class, 'verifyPayment'])->name('orders.verify');
+
+    Route::get('banks', [AdminBank::class, 'index'])->name('banks.index');
+    Route::post('banks', [AdminBank::class, 'store'])->name('banks.store');
+    Route::put('banks/{bank}', [AdminBank::class, 'update'])->name('banks.update');
+    Route::delete('banks/{bank}', [AdminBank::class, 'destroy'])->name('banks.destroy');
+
+    Route::get('messages', [AdminMessage::class, 'index'])->name('messages.index');
+    Route::patch('messages/{message}/read', [AdminMessage::class, 'read'])->name('messages.read');
+    Route::delete('messages/{message}', [AdminMessage::class, 'destroy'])->name('messages.destroy');
+});
