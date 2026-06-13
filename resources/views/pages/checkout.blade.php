@@ -146,7 +146,7 @@
     fetch(@json(route('checkout.shipping')), {
       method:'POST',
       headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-      body: JSON.stringify({destination_id:id})
+      body: JSON.stringify({destination_id:String(id)})
     }).then(r=>r.json()).then(data=>{
       shipLoading.style.display='none';
       const opts = data.options || [];

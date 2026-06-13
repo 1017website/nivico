@@ -44,29 +44,36 @@ class User extends Authenticatable
     /** Admin = punya role custom apa pun, atau kolom role legacy 'admin'. */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || ! is_null($this->role_id);
+        return $this->getRawOriginal('role') === 'admin' || ! is_null($this->role_id);
     }
 
     public function isSuperAdmin(): bool
     {
-        return optional($this->role)->slug === 'super-admin' || $this->role === 'admin';
+        return optional($this->roleModel())->slug === 'super-admin'
+            || $this->getRawOriginal('role') === 'admin';
+    }
+
+    /**
+     * Selalu kembalikan objek Role (dari relasi) atau null — menghindari
+     * ambiguitas antara kolom legacy `role` (string) dan relasi `role()`.
+     */
+    public function roleModel(): ?Role
+    {
+        if (! $this->role_id) {
+            return null;
+        }
+        return $this->relationLoaded('role')
+            ? $this->getRelationValue('role')
+            : $this->role()->with('permissions')->first();
     }
 
     /** Cek apakah user punya permission tertentu (super admin selalu true). */
-    public function can($abilities, $arguments = []): bool
-    {
-        if (is_string($abilities) && $this->hasPermission($abilities)) {
-            return true;
-        }
-        return parent::can($abilities, $arguments);
-    }
-
     public function hasPermission(string $slug): bool
     {
         if ($this->isSuperAdmin()) {
             return true;
         }
-        $role = $this->relationLoaded('role') ? $this->role : $this->role()->with('permissions')->first();
+        $role = $this->roleModel();
         return $role ? $role->hasPermission($slug) : false;
     }
 

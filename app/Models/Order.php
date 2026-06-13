@@ -59,6 +59,29 @@ class Order extends Model
         return $this->payment_status === 'paid';
     }
 
+    /**
+     * Normalisasi nomor telepon Indonesia ke format 62xxxxxxxxxx.
+     * Contoh: "0812-3456-7890" / "+62 812 3456 7890" -> "6281234567890".
+     */
+    public static function normalizePhone(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+        $digits = preg_replace('/\D+/', '', $phone);
+        if ($digits === '') {
+            return null;
+        }
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        } elseif (str_starts_with($digits, '620')) {
+            $digits = '62'.substr($digits, 3);
+        } elseif (! str_starts_with($digits, '62')) {
+            $digits = '62'.$digits;
+        }
+        return $digits;
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {

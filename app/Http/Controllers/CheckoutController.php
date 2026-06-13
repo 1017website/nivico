@@ -44,11 +44,13 @@ class CheckoutController extends Controller
     /** AJAX: hitung ongkir berdasarkan tujuan + berat keranjang. */
     public function calculateShipping(Request $request)
     {
-        $request->validate(['destination_id' => 'required|string']);
+        $request->validate(['destination_id' => 'required']);
+        $destinationId = (string) $request->destination_id;
+
         $summary = $this->cart->summary(0);
         $weight  = $this->orders->cartWeight($summary['cart']);
 
-        $options = $this->rajaongkir->calculateCost($request->destination_id, $weight);
+        $options = $this->rajaongkir->calculateCost($destinationId, $weight);
         if (empty($options)) {
             $options = $this->rajaongkir->fallbackOptions();
         }
@@ -66,7 +68,7 @@ class CheckoutController extends Controller
             'city'             => 'nullable|string|max:80',
             'district'         => 'nullable|string|max:80',
             'postal_code'      => 'nullable|string|max:10',
-            'destination_id'   => 'nullable|string|max:40',
+            'destination_id'   => 'nullable|max:40',
             'note'             => 'nullable|string|max:500',
 
             // shipping dikirim sebagai "courier|service|cost|etd|description"
@@ -90,12 +92,22 @@ class CheckoutController extends Controller
         $data['shipping_cost']    = $cost;
         $data['payment_method']   = $data['payment_gateway'] === 'midtrans' ? 'midtrans' : 'transfer';
         $data['user_id']          = auth()->id();
+        $data['phone']            = \App\Models\Order::normalizePhone($data['phone']) ?? $data['phone'];
+        if (isset($data['destination_id'])) {
+            $data['destination_id'] = (string) $data['destination_id'];
+        }
 
         try {
             $order = $this->orders->createFromCart($data);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
+
+        // Catat kepemilikan order di session (untuk guest checkout) agar
+        // hanya pembuatnya yang bisa membuka halaman pembayaran.
+        $owned = (array) $request->session()->get('my_orders', []);
+        $owned[] = $order->order_number;
+        $request->session()->put('my_orders', array_values(array_unique($owned)));
 
         return redirect()->route('payment.show', $order->order_number);
     }

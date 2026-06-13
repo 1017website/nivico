@@ -13,14 +13,11 @@ class PaymentController extends Controller
     public function __construct(protected MidtransService $midtrans) {}
 
     /** Halaman pembayaran setelah checkout. */
-    public function show(string $orderNumber)
+    public function show(Request $request, string $orderNumber)
     {
         $order = Order::with('items', 'bankAccount')->where('order_number', $orderNumber)->firstOrFail();
 
-        // batasi akses: pemilik order atau guest yang baru membuat (cek via session optional)
-        if ($order->user_id && auth()->id() !== $order->user_id && ! optional(auth()->user())->isAdmin()) {
-            abort(403);
-        }
+        $this->authorizeAccess($request, $order);
 
         $snapToken = null;
         if ($order->payment_gateway === 'midtrans' && ! $order->isPaid()) {
@@ -30,10 +27,33 @@ class PaymentController extends Controller
         return view('pages.payment', compact('order', 'snapToken'));
     }
 
+    /**
+     * Izinkan akses bila: admin, pemilik order (login), atau guest yang
+     * membuat order tsb (tercatat di session 'my_orders').
+     */
+    protected function authorizeAccess(Request $request, Order $order): void
+    {
+        $user = auth()->user();
+
+        if ($user && $user->isAdmin()) {
+            return;
+        }
+        if ($order->user_id && $user && $user->id === $order->user_id) {
+            return;
+        }
+        $owned = (array) $request->session()->get('my_orders', []);
+        if (in_array($order->order_number, $owned, true)) {
+            return;
+        }
+
+        abort(403, 'Anda tidak memiliki akses ke pesanan ini.');
+    }
+
     /** Upload bukti transfer manual. */
     public function uploadProof(Request $request, string $orderNumber)
     {
         $order = Order::where('order_number', $orderNumber)->firstOrFail();
+        $this->authorizeAccess($request, $order);
         $request->validate([
             'proof' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
@@ -63,20 +83,36 @@ class PaymentController extends Controller
             return response()->json(['message' => 'invalid signature'], 403);
         }
 
-        // order_id Midtrans = "{order_number}-{timestamp}"
-        $orderNumber = explode('-', $payload['order_id'] ?? '')[0] ?? null;
-        // order_number kita berformat NVC-YYYY-NNNNN, jadi gabung 3 segmen pertama
-        $segments = explode('-', $payload['order_id'] ?? '');
-        if (count($segments) >= 3) {
-            $orderNumber = $segments[0].'-'.$segments[1].'-'.$segments[2];
+        $midtransOrderId = $payload['order_id'] ?? '';
+
+        // Utamakan lookup via kolom midtrans_order_id (disimpan saat buat Snap token).
+        $order = Order::where('midtrans_order_id', $midtransOrderId)->first();
+
+        // Fallback: lepas suffix "-{timestamp}" dari belakang (lebih tahan terhadap
+        // perubahan prefix order_number yang bisa mengandung tanda '-').
+        if (! $order && $midtransOrderId !== '') {
+            $orderNumber = preg_replace('/-\d+$/', '', $midtransOrderId);
+            $order = Order::where('order_number', $orderNumber)->first();
         }
 
-        $order = Order::where('order_number', $orderNumber)->first();
         if (! $order) {
             return response()->json(['message' => 'order not found'], 404);
         }
 
         $status = $this->midtrans->mapStatus($payload);
+
+        // Idempoten: bila status pembayaran tidak berubah, abaikan (notifikasi dobel).
+        if ($order->payment_status === $status) {
+            return response()->json(['message' => 'ok (no change)']);
+        }
+
+        // Jangan proses mundur dari kondisi final 'paid'.
+        if ($order->payment_status === 'paid' && $status !== 'refunded') {
+            return response()->json(['message' => 'ok (already paid)']);
+        }
+
+        $wasCancelled = $order->status === 'cancelled';
+
         $update = [
             'payment_status'          => $status,
             'midtrans_transaction_id' => $payload['transaction_id'] ?? $order->midtrans_transaction_id,
@@ -87,15 +123,13 @@ class PaymentController extends Controller
             $update['paid_at'] = now();
             $update['status']  = 'paid';
         } elseif (in_array($status, ['expired', 'failed'])) {
-            // kembalikan stok bila batal/expired
-            app(\App\Services\OrderService::class);
             $update['status'] = 'cancelled';
         }
 
         $order->update($update);
 
-        // kembalikan stok jika dibatalkan
-        if (in_array($status, ['expired', 'failed'])) {
+        // Kembalikan stok hanya bila baru dibatalkan (hindari double restock).
+        if (in_array($status, ['expired', 'failed']) && ! $wasCancelled) {
             $this->restock($order);
         }
 

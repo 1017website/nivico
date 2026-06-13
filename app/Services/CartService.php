@@ -36,30 +36,38 @@ class CartService
         }
         foreach ($guest->items as $gi) {
             $item = $userCart->items()->firstOrNew(['product_id' => $gi->product_id]);
-            $item->qty = ($item->qty ?? 0) + $gi->qty;
+            $merged = ($item->qty ?? 0) + $gi->qty;
+            // jangan melebihi stok tersedia
+            $stock = optional($gi->product)->stock;
+            $item->qty = is_null($stock) ? $merged : max(1, min($merged, $stock));
             $item->save();
         }
         $guest->delete();
     }
 
-    public function add(int $productId, int $qty = 1): void
+    public function add(int $productId, int $qty = 1): array
     {
         $product = Product::active()->findOrFail($productId);
         $cart = $this->current();
 
         $item = $cart->items()->firstOrNew(['product_id' => $product->id]);
-        $item->qty = ($item->qty ?? 0) + max(1, $qty);
+        $requested = ($item->qty ?? 0) + max(1, $qty);
+        $capped = $requested > $product->stock;
+        $item->qty = max(1, min($requested, $product->stock));
         $item->save();
+
+        return ['capped' => $capped, 'qty' => $item->qty, 'stock' => $product->stock];
     }
 
     public function updateQty(int $itemId, int $qty): void
     {
         $cart = $this->current();
-        $item = $cart->items()->findOrFail($itemId);
+        $item = $cart->items()->with('product')->findOrFail($itemId);
         if ($qty <= 0) {
             $item->delete();
         } else {
-            $item->update(['qty' => $qty]);
+            $stock = optional($item->product)->stock;
+            $item->update(['qty' => is_null($stock) ? $qty : min($qty, max(1, $stock))]);
         }
     }
 

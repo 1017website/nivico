@@ -124,6 +124,9 @@ class OrderService
         $expired = Order::where('status', 'pending')
             ->whereNotNull('expires_at')
             ->where('expires_at', '<', now())
+            // jangan batalkan order yang sudah dibayar / sudah upload bukti / menunggu verifikasi
+            ->where('payment_status', 'unpaid')
+            ->whereNull('payment_proof')
             ->with('items')
             ->get();
 

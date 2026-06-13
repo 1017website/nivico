@@ -47,7 +47,9 @@ class RajaOngkirService
             return [];
         }
 
-        $cacheKey = 'ro_dest_'.md5(strtolower($keyword));
+        // Sertakan hash API key di cache-key agar pergantian key
+        // otomatis menginvalidasi cache lama.
+        $cacheKey = 'ro_dest_'.substr(md5($this->apiKey), 0, 8).'_'.md5(strtolower($keyword));
 
         return Cache::remember($cacheKey, now()->addDay(), function () use ($keyword) {
             try {
@@ -66,7 +68,7 @@ class RajaOngkirService
                     $label = $r['label']
                         ?? trim(($r['subdistrict_name'] ?? '').', '.($r['district_name'] ?? '').', '.($r['city_name'] ?? '').', '.($r['province_name'] ?? ''), ', ');
                     return [
-                        'id'    => $r['id'] ?? ($r['subdistrict_id'] ?? $r['city_id'] ?? null),
+                        'id'    => (string) ($r['id'] ?? ($r['subdistrict_id'] ?? $r['city_id'] ?? '')),
                         'label' => $label,
                     ];
                 })->filter(fn ($r) => $r['id'])->values()->all();

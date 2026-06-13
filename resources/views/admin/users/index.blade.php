@@ -22,7 +22,7 @@
         <tr>
           <td style="font-weight:600">{{ $u->name }}</td>
           <td style="color:var(--muted)">{{ $u->email }}</td>
-          <td>@if($u->role)<span class="badge b-paid">{{ $u->role->name }}</span>@else<span class="badge b-pending">{{ ucfirst($u->role ?? 'customer') }}</span>@endif</td>
+          <td>@php($roleObj = $u->roleModel())@if($roleObj)<span class="badge b-paid">{{ $roleObj->name }}</span>@else<span class="badge b-pending">{{ ucfirst($u->getRawOriginal('role') ?: 'customer') }}</span>@endif</td>
           <td><span class="badge {{ $u->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td style="color:var(--muted)">{{ $u->created_at->format('d M Y') }}</td>
           <td style="white-space:nowrap">

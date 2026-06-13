@@ -17,7 +17,16 @@ class CartCount
 
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('cartCount', $this->cart->current()->totalQty());
+        // Hindari membuat baris cart untuk konteks yang tidak butuh:
+        // panel admin, webhook server-to-server, dan request non-HTML (AJAX/JSON).
+        $skip = $request->is('admin', 'admin/*', 'midtrans/*')
+            || $request->expectsJson()
+            || $request->ajax();
+
+        if (! $skip) {
+            View::share('cartCount', $this->cart->current()->totalQty());
+        }
+
         return $next($request);
     }
 }

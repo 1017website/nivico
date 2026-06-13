@@ -22,10 +22,14 @@ class CartController extends Controller
             'qty'        => 'nullable|integer|min:1',
         ]);
 
-        $this->cart->add($data['product_id'], $data['qty'] ?? 1);
+        $result = $this->cart->add($data['product_id'], $data['qty'] ?? 1);
 
         if ($request->input('redirect') === 'checkout') {
             return redirect()->route('checkout');
+        }
+
+        if ($result['capped']) {
+            return back()->with('toast', '⚠ Jumlah disesuaikan dengan sisa stok ('.$result['qty'].')');
         }
 
         return back()->with('toast', '✓ Produk ditambahkan ke keranjang');
