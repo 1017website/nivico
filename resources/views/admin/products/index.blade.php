@@ -6,9 +6,9 @@
 <div class="toolbar">
   <form method="GET" action="{{ route('admin.products.index') }}">
     <input class="inp" type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / SKU produk...">
-    <button class="btn" type="submit">Cari</button>
+    <button class="btn btn-gray" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
   </form>
-  <a class="btn btn-blue" href="{{ route('admin.products.create') }}" style="margin-left:auto">+ Tambah Produk</a>
+  <a class="btn btn-blue" href="{{ route('admin.products.create') }}" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Tambah Produk</a>
 </div>
 
 <div class="panel">
@@ -30,9 +30,9 @@
           <td>{{ $p->sold }}</td>
           <td><span class="badge {{ $p->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td style="white-space:nowrap">
-            <a class="btn btn-sm btn-blue" href="{{ route('admin.products.edit', $p) }}">Edit</a>
+            <a class="btn btn-sm btn-blue" href="{{ route('admin.products.edit', $p) }}"><i class="fa-solid fa-pen"></i> Edit</a>
             <form method="POST" action="{{ route('admin.products.destroy', $p) }}" style="display:inline" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-              <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+              <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
             </form>
           </td>
         </tr>

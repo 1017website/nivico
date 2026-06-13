@@ -32,7 +32,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'Staf Toko', 'description' => 'Mengelola katalog & pesanan']
         );
         $staffPerms = Permission::whereIn('slug', [
-            'dashboard.view', 'orders.manage', 'products.manage',
+            'dashboard.view', 'orders.manage', 'products.manage', 'stock.manage',
             'categories.manage', 'promos.manage', 'messages.manage',
         ])->pluck('id');
         $staff->permissions()->sync($staffPerms);

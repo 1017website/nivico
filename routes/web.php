@@ -97,6 +97,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::middleware('permission:products.manage')->group(function () {
         Route::resource('products', AdminProduct::class)->except('show');
     });
+
+    Route::middleware('permission:stock.manage')->group(function () {
+        Route::get('stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('stock.index');
+        Route::post('stock/adjust', [\App\Http\Controllers\Admin\StockController::class, 'adjust'])->name('stock.adjust');
+        Route::get('stock/opname', [\App\Http\Controllers\Admin\StockController::class, 'opname'])->name('stock.opname');
+        Route::post('stock/opname', [\App\Http\Controllers\Admin\StockController::class, 'opnameStore'])->name('stock.opname.store');
+        Route::get('stock/movements', [\App\Http\Controllers\Admin\StockController::class, 'movements'])->name('stock.movements');
+    });
     Route::middleware('permission:promos.manage')->group(function () {
         Route::resource('promos', AdminPromo::class)->except('show');
     });

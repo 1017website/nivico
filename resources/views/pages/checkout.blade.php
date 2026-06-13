@@ -17,6 +17,7 @@
             <div class="fg"><label>Nama Lengkap</label><input type="text" name="recipient_name" value="{{ old('recipient_name', auth()->user()->name ?? '') }}" placeholder="Nama lengkap penerima" required></div>
             <div class="fg"><label>No. Telepon</label><input type="text" name="phone" value="{{ old('phone', auth()->user()->phone ?? '') }}" placeholder="08xx-xxxx-xxxx" required></div>
           </div>
+          <div class="fr full"><div class="fg"><label>Email (untuk invoice)</label><input type="email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}" placeholder="email@contoh.com" required></div></div>
           <div class="fr full"><div class="fg"><label>Alamat Lengkap</label><textarea name="address" placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan..." required>{{ old('address') }}</textarea></div></div>
           <div class="fr">
             <div class="fg"><label>Kota / Kecamatan Tujuan</label>

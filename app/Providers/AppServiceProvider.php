@@ -17,6 +17,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Pagination memakai tema admin
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.admin');
+
         // Share kategori aktif ke layout toko (nav & footer)
         View::composer(['layouts.app', 'partials.*'], function ($view) {
             if (Schema::hasTable('categories')) {

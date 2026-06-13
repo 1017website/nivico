@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="toolbar">
-  <a class="btn btn-blue" href="{{ route('admin.roles.create') }}" style="margin-left:auto">+ Tambah Role</a>
+  <a class="btn btn-blue" href="{{ route('admin.roles.create') }}" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Tambah Role</a>
 </div>
 <div class="panel">
   @if($roles->isEmpty())
@@ -20,10 +20,10 @@
           <td>{{ $r->users_count }}</td>
           <td>{{ $r->is_locked ? 'Semua (full)' : $r->permissions_count }}</td>
           <td style="white-space:nowrap">
-            <a class="btn btn-sm btn-blue" href="{{ route('admin.roles.edit', $r) }}">Edit</a>
+            <a class="btn btn-sm btn-blue" href="{{ route('admin.roles.edit', $r) }}"><i class="fa-solid fa-pen"></i> Edit</a>
             @unless($r->is_locked)
             <form method="POST" action="{{ route('admin.roles.destroy', $r) }}" style="display:inline" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-              <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+              <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
             </form>
             @endunless
           </td>

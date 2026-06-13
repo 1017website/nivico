@@ -57,6 +57,7 @@ class OrderService
                 'user_id'         => $data['user_id'] ?? null,
                 'recipient_name'  => $data['recipient_name'],
                 'phone'           => $data['phone'],
+                'email'           => $data['email'] ?? null,
                 'address'         => $data['address'],
                 'province'        => $data['province'] ?? null,
                 'city'            => $data['city'] ?? null,
@@ -95,8 +96,20 @@ class OrderService
                 ]);
 
                 // potong stok & tambah terjual
+                $before = (int) $p->stock;
                 $p->decrement('stock', $item->qty);
                 $p->increment('sold', $item->qty);
+
+                \App\Models\StockMovement::create([
+                    'product_id'   => $p->id,
+                    'type'         => 'sale',
+                    'qty_change'   => -1 * (int) $item->qty,
+                    'stock_before' => $before,
+                    'stock_after'  => max(0, $before - (int) $item->qty),
+                    'reason'       => 'Penjualan',
+                    'reference'    => $order->order_number,
+                    'user_id'      => $order->user_id,
+                ]);
             }
 
             // kosongkan keranjang

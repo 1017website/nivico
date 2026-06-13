@@ -128,6 +128,11 @@ class PaymentController extends Controller
 
         $order->update($update);
 
+        // Kirim invoice "lunas" ke pembeli.
+        if ($status === 'paid') {
+            $this->sendInvoice($order->fresh('items'), 'paid');
+        }
+
         // Kembalikan stok hanya bila baru dibatalkan (hindari double restock).
         if (in_array($status, ['expired', 'failed']) && ! $wasCancelled) {
             $this->restock($order);
@@ -136,9 +141,22 @@ class PaymentController extends Controller
         return response()->json(['message' => 'ok']);
     }
 
-    protected function restock(Order $order): void
+    /** Kirim email invoice; gagal-aman. */
+    protected function sendInvoice(Order $order, string $kind): void
     {
-        foreach ($order->items as $item) {
+        $to = $order->email ?: optional($order->user)->email;
+        if (! $to) {
+            return;
+        }
+        try {
+            \Illuminate\Support\Facades\Mail::to($to)->send(new \App\Mail\OrderInvoiceMail($order, $kind));
+        } catch (\Throwable $e) {
+            Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
+        }
+    }
+
+    protected function restock(Order $order): void
+    {        foreach ($order->items as $item) {
             if ($item->product_id) {
                 \App\Models\Product::where('id', $item->product_id)->update([
                     'stock' => \Illuminate\Support\Facades\DB::raw("stock + {$item->qty}"),

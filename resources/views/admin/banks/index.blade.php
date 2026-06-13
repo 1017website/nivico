@@ -27,7 +27,7 @@
                 <button class="btn btn-sm btn-gray" type="submit">{{ $b->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</button>
               </form>
               <form method="POST" action="{{ route('admin.banks.destroy', $b) }}" style="display:inline" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-                <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+                <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
               </form>
             </td>
           </tr>
@@ -44,7 +44,7 @@
         <div class="fld"><label>Nama Bank</label><input class="inp" type="text" name="bank_name" placeholder="BCA / Mandiri / BNI" required></div>
         <div class="fld"><label>No. Rekening</label><input class="inp" type="text" name="account_number" required></div>
         <div class="fld"><label>Atas Nama</label><input class="inp" type="text" name="account_holder" required></div>
-        <button class="btn btn-blue" type="submit" style="width:100%">+ Tambah Rekening</button>
+        <button class="btn btn-blue" type="submit" style="width:100%"><i class="fa-solid fa-plus"></i> Tambah Rekening</button>
       </form>
     </div>
   </div>

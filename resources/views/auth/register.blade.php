@@ -8,11 +8,6 @@
     <h1 class="auth-title">Buat Akun Baru</h1>
     <p class="auth-sub">Bergabung dan nikmati kemudahan belanja elektronik</p>
 
-    <div class="social-login">
-      <button type="button" class="btn-social" onclick="toast('Daftar sosial belum tersedia')">🌐 Daftar dengan Google</button>
-    </div>
-    <div class="auth-divider">atau daftar dengan email</div>
-
     <form method="POST" action="{{ route('register.store') }}">
       @csrf
       <div class="fr" style="gap:12px;margin-bottom:0">

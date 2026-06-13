@@ -15,7 +15,7 @@
           <td style="color:var(--muted)">{{ $s->title ?? '—' }}</td>
           <td style="color:var(--muted);max-width:320px">{{ \Illuminate\Support\Str::limit($s->meta_description ?? '—', 80) }}</td>
           <td>@if($s && $s->noindex)<span class="badge b-cancelled">noindex</span>@else<span class="badge b-completed">index</span>@endif</td>
-          <td><a class="btn btn-sm btn-blue" href="{{ route('admin.seo.edit', $key) }}">Edit</a></td>
+          <td><a class="btn btn-sm btn-blue" href="{{ route('admin.seo.edit', $key) }}"><i class="fa-solid fa-pen"></i> Edit</a></td>
         </tr>
       @endforeach
     </tbody>

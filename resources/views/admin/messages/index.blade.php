@@ -27,7 +27,7 @@
               </form>
             @endunless
             <form method="POST" action="{{ route('admin.messages.destroy', $m) }}" style="display:inline" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-              <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+              <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
             </form>
           </td>
         </tr>

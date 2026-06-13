@@ -6,9 +6,9 @@
 <div class="toolbar">
   <form method="GET" action="{{ route('admin.users.index') }}">
     <input class="inp" type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / email...">
-    <button class="btn" type="submit">Cari</button>
+    <button class="btn btn-gray" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
   </form>
-  <a class="btn btn-blue" href="{{ route('admin.users.create') }}" style="margin-left:auto">+ Tambah Pengguna</a>
+  <a class="btn btn-blue" href="{{ route('admin.users.create') }}" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Tambah Pengguna</a>
 </div>
 
 <div class="panel">
@@ -26,10 +26,10 @@
           <td><span class="badge {{ $u->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td style="color:var(--muted)">{{ $u->created_at->format('d M Y') }}</td>
           <td style="white-space:nowrap">
-            <a class="btn btn-sm btn-blue" href="{{ route('admin.users.edit', $u) }}">Edit</a>
+            <a class="btn btn-sm btn-blue" href="{{ route('admin.users.edit', $u) }}"><i class="fa-solid fa-pen"></i> Edit</a>
             @if($u->id !== auth()->id())
             <form method="POST" action="{{ route('admin.users.destroy', $u) }}" style="display:inline" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-              <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+              <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
             </form>
             @endif
           </td>

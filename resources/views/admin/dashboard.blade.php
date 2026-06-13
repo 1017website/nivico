@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="cards">
-  <div class="card"><div class="lbl">Total Pesanan</div><div class="val">{{ number_format($stats['orders']) }}</div><div class="sub" style="color:var(--muted)">{{ $stats['pending'] }} menunggu pembayaran</div></div>
-  <div class="card"><div class="lbl">Pendapatan</div><div class="val" style="font-size:20px">Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</div><div class="sub" style="color:var(--green)">dari pesanan dibayar</div></div>
-  <div class="card"><div class="lbl">Produk</div><div class="val">{{ number_format($stats['products']) }}</div><div class="sub" style="color:{{ $stats['low_stock'] ? 'var(--red)' : 'var(--muted)' }}">{{ $stats['low_stock'] }} stok menipis</div></div>
-  <div class="card"><div class="lbl">Pelanggan</div><div class="val">{{ number_format($stats['customers']) }}</div><div class="sub" style="color:{{ $stats['unread_msg'] ? 'var(--blue)' : 'var(--muted)' }}">{{ $stats['unread_msg'] }} pesan belum dibaca</div></div>
+  <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-receipt"></i></span> Total Pesanan</div><div class="val">{{ number_format($stats['orders']) }}</div><div class="sub" style="color:var(--muted)">{{ $stats['pending'] }} menunggu pembayaran</div></div>
+  <div class="card"><div class="lbl"><span class="ci" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-money-bill-wave"></i></span> Pendapatan</div><div class="val" style="font-size:20px">Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</div><div class="sub" style="color:var(--green)">dari pesanan dibayar</div></div>
+  <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-box"></i></span> Produk</div><div class="val">{{ number_format($stats['products']) }}</div><div class="sub" style="color:{{ $stats['low_stock'] ? 'var(--red)' : 'var(--muted)' }}">{{ $stats['low_stock'] }} stok menipis</div></div>
+  <div class="card"><div class="lbl"><span class="ci" style="background:#e0e7ff;color:#3730a3"><i class="fa-solid fa-users"></i></span> Pelanggan</div><div class="val">{{ number_format($stats['customers']) }}</div><div class="sub" style="color:{{ $stats['unread_msg'] ? 'var(--blue)' : 'var(--muted)' }}">{{ $stats['unread_msg'] }} pesan belum dibaca</div></div>
 </div>
 
 <div class="panel">
@@ -46,7 +46,7 @@
           <td style="display:flex;align-items:center;gap:10px"><img class="thumb" src="{{ $p->image }}" alt="">{{ $p->name }}</td>
           <td style="color:var(--muted)">{{ $p->sku }}</td>
           <td><span class="badge b-cancelled">{{ $p->stock }}</span></td>
-          <td><a class="btn btn-sm btn-blue" href="{{ route('admin.products.edit', $p) }}">Edit</a></td>
+          <td><a class="btn btn-sm btn-blue" href="{{ route('admin.products.edit', $p) }}"><i class="fa-solid fa-pen"></i> Edit</a></td>
         </tr>
       @endforeach
     </tbody>

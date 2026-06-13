@@ -26,7 +26,7 @@
             <td><span class="badge {{ $c->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $c->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
             <td>
               <form method="POST" action="{{ route('admin.categories.destroy', $c) }}" onsubmit="return confirmDelete()">@csrf @method('DELETE')
-                <button class="btn btn-sm btn-red" type="submit">Hapus</button>
+                <button class="btn btn-sm btn-red" type="submit"><i class="fa-solid fa-trash"></i> Hapus</button>
               </form>
             </td>
           </tr>
@@ -42,7 +42,7 @@
       <form method="POST" action="{{ route('admin.categories.store') }}">@csrf
         <div class="fld"><label>Nama Kategori</label><input class="inp" type="text" name="name" required></div>
         <div class="fld"><label>Ikon (emoji, opsional)</label><input class="inp" type="text" name="icon" placeholder="🔌"></div>
-        <button class="btn btn-blue" type="submit" style="width:100%">+ Tambah</button>
+        <button class="btn btn-blue" type="submit" style="width:100%"><i class="fa-solid fa-plus"></i> Tambah</button>
       </form>
     </div>
   </div>

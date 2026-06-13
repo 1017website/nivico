@@ -10,6 +10,7 @@ return [
     'dashboard'  => ['label' => 'Dashboard',      'icon' => '📊', 'route' => 'admin.dashboard',       'permission' => 'dashboard.view',  'group' => 'Umum'],
     'orders'     => ['label' => 'Pesanan',        'icon' => '🧾', 'route' => 'admin.orders.index',    'permission' => 'orders.manage',   'group' => 'Transaksi'],
     'products'   => ['label' => 'Produk',         'icon' => '📦', 'route' => 'admin.products.index',  'permission' => 'products.manage', 'group' => 'Katalog'],
+    'stock'      => ['label' => 'Stok',           'icon' => '📥', 'route' => 'admin.stock.index',     'permission' => 'stock.manage',    'group' => 'Katalog'],
     'categories' => ['label' => 'Kategori',       'icon' => '🗂', 'route' => 'admin.categories.index','permission' => 'categories.manage','group' => 'Katalog'],
     'promos'     => ['label' => 'Promo',          'icon' => '🎁', 'route' => 'admin.promos.index',    'permission' => 'promos.manage',   'group' => 'Katalog'],
     'banks'      => ['label' => 'Rekening Bank',  'icon' => '🏦', 'route' => 'admin.banks.index',     'permission' => 'banks.manage',    'group' => 'Transaksi'],

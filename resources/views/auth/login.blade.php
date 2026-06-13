@@ -8,12 +8,6 @@
     <h1 class="auth-title">Masuk ke Akun</h1>
     <p class="auth-sub">Selamat datang kembali di NIVICO Electronic Mart</p>
 
-    <div class="social-login">
-      <button type="button" class="btn-social" onclick="toast('Login sosial belum tersedia')">🌐 Masuk dengan Google</button>
-      <button type="button" class="btn-social" onclick="toast('Login sosial belum tersedia')">📘 Masuk dengan Facebook</button>
-    </div>
-    <div class="auth-divider">atau masuk dengan email</div>
-
     <form method="POST" action="{{ route('login.attempt') }}">
       @csrf
       <div class="auth-fg"><label>Email</label><input type="email" name="email" value="{{ old('email') }}" placeholder="email@contoh.com" required autofocus></div>

@@ -13,7 +13,7 @@ class Order extends Model
     use HasFactory, Auditable, SoftDeletes;
 
     protected $fillable = [
-        'order_number', 'user_id', 'recipient_name', 'phone', 'address',
+        'order_number', 'user_id', 'recipient_name', 'phone', 'email', 'address',
         'province', 'city', 'district', 'postal_code', 'destination_id', 'note',
         'shipping_method', 'shipping_courier', 'shipping_service', 'shipping_etd',
         'shipping_weight', 'shipping_cost', 'tracking_number',

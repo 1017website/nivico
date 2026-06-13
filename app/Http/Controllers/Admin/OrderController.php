@@ -55,6 +55,15 @@ class OrderController extends Controller
                 'paid_at'        => now(),
                 'status'         => $order->status === 'pending' ? 'paid' : $order->status,
             ]);
+            // kirim invoice "lunas"
+            $to = $order->email ?: optional($order->user)->email;
+            if ($to) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($to)->send(new \App\Mail\OrderInvoiceMail($order->fresh('items'), 'paid'));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
+                }
+            }
             $msg = '✓ Pembayaran disetujui';
         } else {
             $order->update(['payment_status' => 'failed']);

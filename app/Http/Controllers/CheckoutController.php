@@ -63,6 +63,7 @@ class CheckoutController extends Controller
         $data = $request->validate([
             'recipient_name'   => 'required|string|max:120',
             'phone'            => 'required|string|max:30',
+            'email'            => 'required|email|max:120',
             'address'          => 'required|string',
             'province'         => 'nullable|string|max:80',
             'city'             => 'nullable|string|max:80',
@@ -109,7 +110,24 @@ class CheckoutController extends Controller
         $owned[] = $order->order_number;
         $request->session()->put('my_orders', array_values(array_unique($owned)));
 
+        // Kirim invoice ke email pembeli (gagal-aman: tidak menggagalkan checkout).
+        $this->sendInvoice($order, 'created');
+
         return redirect()->route('payment.show', $order->order_number);
+    }
+
+    /** Kirim email invoice; dibungkus try-catch agar kegagalan SMTP tidak mengganggu alur. */
+    protected function sendInvoice(\App\Models\Order $order, string $kind): void
+    {
+        $to = $order->email ?: optional($order->user)->email;
+        if (! $to) {
+            return;
+        }
+        try {
+            \Illuminate\Support\Facades\Mail::to($to)->send(new \App\Mail\OrderInvoiceMail($order, $kind));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
+        }
     }
 
     /** Halaman sukses (juga finish redirect Midtrans). */

@@ -13,7 +13,7 @@
         <option value="{{ $key }}" @selected(request('status')===$key)>{{ $lbl }}</option>
       @endforeach
     </select>
-    <button class="btn" type="submit">Cari</button>
+    <button class="btn btn-gray" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
   </form>
 </div>
 
