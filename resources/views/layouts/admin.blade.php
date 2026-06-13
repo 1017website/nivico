@@ -66,13 +66,44 @@ tr:hover td{background:#fafbfc}
 .thumb{width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
 .empty{padding:48px;text-align:center;color:var(--muted)}
 #toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 22px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
-@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.sb{width:64px}.sb-logo,.sb-nav a span,.sb-foot a span{display:none}.mn{margin-left:64px}.frm-grid{grid-template-columns:1fr}}
+/* wrapper agar tabel bisa di-scroll horizontal di layar sempit */
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:560px}
+/* hamburger & overlay (disembunyikan di desktop) */
+.sb-toggle{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:#111827;margin-right:4px;line-height:1}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:45}
+.sb-overlay.show{display:block}
+
+@media(max-width:900px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .sb{width:64px}
+  .sb-logo,.sb-nav a span,.sb-foot a span{display:none}
+  .mn{margin-left:64px}
+  .frm-grid{grid-template-columns:1fr}
+}
+/* di HP: sidebar jadi drawer geser, bukan rail 64px */
+@media(max-width:640px){
+  .sb{width:240px;transform:translateX(-100%);transition:transform .25s ease}
+  .sb.open{transform:translateX(0)}
+  .sb-logo,.sb-nav a span,.sb-foot a span{display:inline}
+  .mn{margin-left:0}
+  .sb-toggle{display:inline-block}
+  .tb{padding:12px 16px}
+  .ct{padding:16px}
+  .cards{grid-template-columns:1fr;gap:12px}
+  .tb-r span{display:none}
+  .toolbar form{max-width:none}
+  /* paksa grid 2-kolom inline (mis. detail pesanan) jadi 1 kolom */
+  .ct [style*="grid-template-columns:1fr 340px"],
+  .ct [style*="grid-template-columns: 1fr 340px"]{grid-template-columns:1fr !important}
+}
 </style>
 @stack('styles')
 </head>
 <body>
 <div class="adm">
-  <aside class="sb">
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sb" id="sidebar">
     <div class="sb-logo">NIVICO<small>Admin Panel</small></div>
     <nav class="sb-nav">
       @foreach($adminMenus ?? [] as $key => $m)
@@ -88,6 +119,7 @@ tr:hover td{background:#fafbfc}
 
   <div class="mn">
     <div class="tb">
+      <button class="sb-toggle" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
       <h1>@yield('heading', 'Dashboard')</h1>
       <div class="tb-r">
         <a class="viewsite" href="{{ route('home') }}" target="_blank">↗ Lihat Toko</a>
@@ -102,6 +134,7 @@ tr:hover td{background:#fafbfc}
 
 <div id="toast"></div>
 <script>
+function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.getElementById('sbOverlay');s.classList.toggle('open');o.classList.toggle('show');}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0'},2600);}
 function confirmDelete(f){return confirm('Yakin ingin menghapus data ini?');}
 @if(session('toast'))document.addEventListener('DOMContentLoaded',function(){toast(@json(session('toast')))});@endif

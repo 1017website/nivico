@@ -5,7 +5,7 @@
 @section('content')
 <div class="panel">
   <div class="panel-hd"><h2>Meta SEO per Halaman</h2></div>
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Halaman</th><th>Title</th><th>Meta Description</th><th>Index</th><th></th></tr></thead>
     <tbody>
       @foreach($pages as $key => $label)
@@ -19,6 +19,6 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
 </div>
 @endsection

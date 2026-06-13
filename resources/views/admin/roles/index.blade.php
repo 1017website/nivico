@@ -10,7 +10,7 @@
   @if($roles->isEmpty())
     <div class="empty">Belum ada role.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Nama Role</th><th>Deskripsi</th><th>Pengguna</th><th>Permission</th><th></th></tr></thead>
     <tbody>
       @foreach($roles as $r)
@@ -30,7 +30,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   @endif
 </div>
 @endsection

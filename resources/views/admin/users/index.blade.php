@@ -15,7 +15,7 @@
   @if($users->isEmpty())
     <div class="empty">Belum ada pengguna.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Bergabung</th><th></th></tr></thead>
     <tbody>
       @foreach($users as $u)
@@ -36,7 +36,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $users->links() }}</div>
   @endif
 </div>

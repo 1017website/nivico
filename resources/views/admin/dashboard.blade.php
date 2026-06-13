@@ -15,7 +15,7 @@
   @if($recentOrders->isEmpty())
     <div class="empty">Belum ada pesanan.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>No. Pesanan</th><th>Penerima</th><th>Total</th><th>Status</th><th>Tanggal</th><th></th></tr></thead>
     <tbody>
       @foreach($recentOrders as $o)
@@ -29,7 +29,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   @endif
 </div>
 
@@ -38,7 +38,7 @@
   @if($lowStock->isEmpty())
     <div class="empty">Semua stok aman 👍</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Produk</th><th>SKU</th><th>Sisa Stok</th><th></th></tr></thead>
     <tbody>
       @foreach($lowStock as $p)
@@ -50,7 +50,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   @endif
 </div>
 @endsection

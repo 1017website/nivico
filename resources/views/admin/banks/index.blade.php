@@ -9,7 +9,7 @@
     @if($banks->isEmpty())
       <div class="empty">Belum ada rekening bank.</div>
     @else
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>Bank</th><th>No. Rekening</th><th>Atas Nama</th><th>Status</th><th></th></tr></thead>
       <tbody>
         @foreach($banks as $b)
@@ -33,7 +33,7 @@
           </tr>
         @endforeach
       </tbody>
-    </table>
+    </table></div>
     @endif
   </div>
 

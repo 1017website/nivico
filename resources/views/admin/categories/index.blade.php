@@ -9,7 +9,7 @@
     @if($categories->isEmpty())
       <div class="empty">Belum ada kategori.</div>
     @else
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>Nama</th><th>Slug</th><th>Produk</th><th>Status</th><th></th></tr></thead>
       <tbody>
         @foreach($categories as $c)
@@ -32,7 +32,7 @@
           </tr>
         @endforeach
       </tbody>
-    </table>
+    </table></div>
     @endif
   </div>
 

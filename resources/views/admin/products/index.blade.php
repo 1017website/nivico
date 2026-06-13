@@ -15,7 +15,7 @@
   @if($products->isEmpty())
     <div class="empty">Belum ada produk. Klik "Tambah Produk" untuk membuat.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Terjual</th><th>Status</th><th></th></tr></thead>
     <tbody>
       @foreach($products as $p)
@@ -38,7 +38,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $products->links() }}</div>
   @endif
 </div>

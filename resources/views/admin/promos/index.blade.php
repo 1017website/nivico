@@ -11,7 +11,7 @@
   @if($promos->isEmpty())
     <div class="empty">Belum ada promo.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Kode</th><th>Judul</th><th>Tipe</th><th>Nilai</th><th>Min. Belanja</th><th>Berlaku s/d</th><th>Status</th><th></th></tr></thead>
     <tbody>
       @foreach($promos as $p)
@@ -32,7 +32,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $promos->links() }}</div>
   @endif
 </div>

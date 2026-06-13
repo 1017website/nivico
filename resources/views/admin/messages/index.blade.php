@@ -8,7 +8,7 @@
   @if($messages->isEmpty())
     <div class="empty">Belum ada pesan masuk.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Pengirim</th><th>Topik</th><th>Pesan</th><th>Tanggal</th><th></th></tr></thead>
     <tbody>
       @foreach($messages as $m)
@@ -33,7 +33,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $messages->links() }}</div>
   @endif
 </div>

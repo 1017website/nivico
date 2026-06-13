@@ -10,7 +10,7 @@
   <div>
     <div class="panel">
       <div class="panel-hd"><h2>Pesanan #{{ $order->order_number }}</h2><span class="badge b-{{ $order->status }}">{{ $order->statusLabel() }}</span></div>
-      <table>
+      <div class="table-wrap"><table>
         <thead><tr><th>Produk</th><th>Harga</th><th>Qty</th><th>Subtotal</th></tr></thead>
         <tbody>
           @foreach($order->items as $it)
@@ -22,7 +22,7 @@
             </tr>
           @endforeach
         </tbody>
-      </table>
+      </table></div>
       <div style="padding:16px 20px;border-top:1px solid var(--border)">
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--muted)"><span>Subtotal</span><span>Rp{{ number_format($order->subtotal, 0, ',', '.') }}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--muted)"><span>Ongkir</span><span>Rp{{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div>

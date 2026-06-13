@@ -1,0 +1,96 @@
+/* ============================================================
+   NIVICO — responsive.css
+   Override responsif untuk tablet & mobile.
+   Non-destruktif: hanya menambah/menyempurnakan breakpoint,
+   tidak mengubah app.css (yang dikonversi 1:1 dari template).
+   Dimuat SETELAH app.css agar menang specificity.
+   ============================================================ */
+
+/* Hindari horizontal-scroll tak sengaja akibat elemen lebar */
+html, body { overflow-x: hidden; }
+
+/* ───────── TABLET (769px – 1024px) ───────── */
+@media (max-width: 1024px) {
+  .tb, .hd, .nv, .hero-wrap, .cats-wrap, .sec,
+  .cart-wrap, .co-wrap, .promo-wrap, .about-wrap, .kontak-wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  /* grid produk lebih halus di tablet */
+  .pg { grid-template-columns: repeat(3, 1fr); }
+  /* hero tidak terlalu jangkung */
+  .hero { height: 250px; }
+  .sl-t1, .sl-t2 { font-size: 36px; }
+}
+
+/* ───────── TABLET KECIL / LANDSCAPE PHONE (≤768px) ───────── */
+@media (max-width: 768px) {
+  /* hero stack rapi */
+  .sl { position: relative; }
+  .hero { min-height: 0; }
+
+  /* checkout & cart summary tidak menempel terlalu jauh */
+  .co-card, .sum-box, .c-items { border-radius: 10px; }
+
+  /* opsi ongkir & pembayaran: ikon + teks tidak meluber */
+  .radio-opt { flex-wrap: wrap; }
+  .ro-price { margin-left: auto; }
+
+  /* detail produk: galeri & thumbnail proporsional */
+  .det-thumbs { flex-wrap: wrap; }
+}
+
+/* ───────── MOBILE (≤640px) ───────── */
+@media (max-width: 640px) {
+  body { font-size: 13.5px; }
+
+  /* tombol beli / keranjang di detail jangan dipaksa 120px */
+  .btn-beli, .btn-cart-d { min-width: 0; flex: 1 1 calc(50% - 5px); }
+  .det-btns { gap: 8px; }
+
+  /* qty stepper sedikit lebih besar untuk tap target ≥40px */
+  .qty-btn { width: 38px; height: 38px; }
+  .qty-v { width: 40px; }
+
+  /* kartu produk: nama 2 baris tetap rapi, harga tak terpotong */
+  .pc-body { padding: 9px; }
+  .pc-name { font-size: 12px; min-height: 32px; }
+  .pc-price { font-size: 13.5px; }
+
+  /* search bar full di header mobile */
+  .srch { max-width: none; }
+
+  /* promo hero & about hero padding turun */
+  .promo-hero, .about-hero { padding: 24px 18px; }
+  .ph-left h1, .about-hero h1 { font-size: 24px; }
+
+  /* footer dua kolom -> rapikan jarak */
+  .ft { gap: 16px; }
+
+  /* payment page muat layar kecil */
+  .pay-wrap { padding: 16px; }
+  .pay-card { padding: 20px; }
+  .pay-total { font-size: 26px; }
+  .bank-box { flex-wrap: wrap; gap: 10px; }
+  .copy-btn { margin-left: 0; }
+
+  /* success page */
+  .suc-card { padding: 28px 20px; }
+
+  /* toast tidak melebihi layar */
+  #toast { max-width: 90vw; white-space: normal; text-align: center; }
+}
+
+/* ───────── MOBILE KECIL (≤380px) ───────── */
+@media (max-width: 380px) {
+  .pg { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .sl-t1, .sl-t2 { font-size: 24px; }
+  .hero-cta { padding: 9px 16px; font-size: 12px; }
+  .det-btns { flex-direction: column; }
+  .btn-beli, .btn-cart-d { flex: 1 1 100%; }
+}
+
+/* ───────── TAP TARGET & AKSESIBILITAS ───────── */
+@media (hover: none) and (pointer: coarse) {
+  .nv a, .cat-i, .ptab, .mn-item { -webkit-tap-highlight-color: transparent; }
+}

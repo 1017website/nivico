@@ -21,7 +21,7 @@
   @if($orders->isEmpty())
     <div class="empty">Belum ada pesanan.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>No. Pesanan</th><th>Penerima</th><th>Items</th><th>Total</th><th>Bayar</th><th>Pembayaran</th><th>Status</th><th>Tanggal</th><th></th></tr></thead>
     <tbody>
       @foreach($orders as $o)
@@ -38,7 +38,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $orders->links() }}</div>
   @endif
 </div>

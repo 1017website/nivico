@@ -19,7 +19,7 @@
   @if($logs->isEmpty())
     <div class="empty">Belum ada aktivitas tercatat.</div>
   @else
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Waktu</th><th>Pengguna</th><th>Aksi</th><th>Keterangan</th><th>IP</th></tr></thead>
     <tbody>
       @foreach($logs as $log)
@@ -32,7 +32,7 @@
         </tr>
       @endforeach
     </tbody>
-  </table>
+  </table></div>
   <div class="pag">{{ $logs->links() }}</div>
   @endif
 </div>
