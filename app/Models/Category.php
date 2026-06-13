@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable, SoftDeletes;
 
-    protected $fillable = ['name', 'slug', 'icon', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'slug', 'icon', 'sort_order', 'is_active',
+        'created_by', 'updated_by', 'deleted_by',
+    ];
 
     protected $casts = ['is_active' => 'boolean'];
 

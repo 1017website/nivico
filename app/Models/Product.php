@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable, SoftDeletes;
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'price', 'old_price', 'badge',
         'description', 'image', 'stock', 'weight', 'rating', 'rating_count', 'sold',
         'is_flash_sale', 'is_active',
+        'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [

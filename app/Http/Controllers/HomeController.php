@@ -14,6 +14,6 @@ class HomeController extends Controller
         $bestProducts  = Product::active()->with('category')->orderByDesc('sold')->take(6)->get();
         $categories    = Category::active()->orderBy('sort_order')->get();
 
-        return view('pages.home', compact('newProducts', 'flashProducts', 'bestProducts', 'categories'));
+        return view('pages.home', compact('newProducts', 'flashProducts', 'bestProducts', 'categories'))->with('seoKey', 'home');
     }
 }

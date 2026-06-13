@@ -31,7 +31,7 @@ class ProductController extends Controller
         $products   = $query->paginate(12)->withQueryString();
         $categories = Category::active()->orderBy('sort_order')->get();
 
-        return view('pages.products', compact('products', 'categories', 'sort'));
+        return view('pages.products', compact('products', 'categories', 'sort'))->with('seoKey', 'products');
     }
 
     public function show(Product $product)

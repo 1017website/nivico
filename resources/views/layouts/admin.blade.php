@@ -75,13 +75,9 @@ tr:hover td{background:#fafbfc}
   <aside class="sb">
     <div class="sb-logo">NIVICO<small>Admin Panel</small></div>
     <nav class="sb-nav">
-      <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'on' : '' }}"><span class="ico">📊</span><span>Dashboard</span></a>
-      <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'on' : '' }}"><span class="ico">🧾</span><span>Pesanan</span></a>
-      <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'on' : '' }}"><span class="ico">📦</span><span>Produk</span></a>
-      <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'on' : '' }}"><span class="ico">🗂</span><span>Kategori</span></a>
-      <a href="{{ route('admin.promos.index') }}" class="{{ request()->routeIs('admin.promos.*') ? 'on' : '' }}"><span class="ico">🎁</span><span>Promo</span></a>
-      <a href="{{ route('admin.banks.index') }}" class="{{ request()->routeIs('admin.banks.*') ? 'on' : '' }}"><span class="ico">🏦</span><span>Rekening Bank</span></a>
-      <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages.*') ? 'on' : '' }}"><span class="ico">💬</span><span>Pesan Masuk</span></a>
+      @foreach($adminMenus ?? [] as $key => $m)
+        <a href="{{ route($m['route']) }}" class="{{ request()->routeIs(str_replace('.index','',$m['route']).'*') ? 'on' : '' }}"><span class="ico">{!! $m['icon'] !!}</span><span>{{ $m['label'] }}</span></a>
+      @endforeach
     </nav>
     <div class="sb-foot">
       <form method="POST" action="{{ route('logout') }}">@csrf

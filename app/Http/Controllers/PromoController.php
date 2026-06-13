@@ -25,6 +25,6 @@ class PromoController extends Controller
         }
 
         $promos = $query->get();
-        return view('pages.promo', compact('promos', 'tab'));
+        return view('pages.promo', compact('promos', 'tab'))->with('seoKey', 'promo');
     }
 }

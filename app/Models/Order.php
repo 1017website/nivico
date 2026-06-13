@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable, SoftDeletes;
 
     protected $fillable = [
         'order_number', 'user_id', 'recipient_name', 'phone', 'address',
@@ -18,6 +21,7 @@ class Order extends Model
         'snap_token', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type',
         'paid_at', 'bank_account_id', 'payment_proof',
         'subtotal', 'discount', 'promo_id', 'total', 'status', 'expires_at',
+        'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [

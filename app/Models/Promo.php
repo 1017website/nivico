@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Promo extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable, SoftDeletes;
 
     protected $fillable = [
         'code', 'title', 'description', 'type', 'value', 'max_discount',
         'min_purchase', 'badge', 'image', 'expires_at', 'is_active',
+        'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [

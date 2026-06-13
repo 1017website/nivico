@@ -17,7 +17,7 @@
       <div><div style="color:#fff;font-size:19px;font-weight:800;font-family:'DM Serif Display',serif">NIVICO</div><div style="color:#94a3b8;font-size:11px">Electronic Mart</div></div>
     </div>
     <p>Pusat kebutuhan elektronik, aksesoris, tools, kabel, microphone, adaptor dan perlengkapan rumah tangga dengan harga terbaik.</p>
-    <div class="ft-soc"><a href="#">📷</a><a href="#">🛒</a><a href="#">🏪</a><a href="#">💬</a></div>
+    <div class="ft-soc"><a href="#" aria-label="Instagram"><x-social-icon name="instagram" size="18" /></a><a href="#" aria-label="Tokopedia"><x-social-icon name="tokopedia" size="18" /></a><a href="#" aria-label="Shopee"><x-social-icon name="shopee" size="18" /></a><a href="#" aria-label="WhatsApp"><x-social-icon name="whatsapp" size="18" /></a></div>
   </div>
   <div class="ft-col"><h4>Layanan</h4><ul><li><a href="#">Cara Belanja</a></li><li><a href="#">Metode Pembayaran</a></li><li><a href="#">Info Pengiriman</a></li><li><a href="#">Pengembalian Barang</a></li><li><a href="#">FAQ</a></li></ul></div>
   <div class="ft-col"><h4>Kategori</h4><ul>

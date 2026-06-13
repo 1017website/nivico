@@ -522,3 +522,9 @@ input,select,textarea{font-family:inherit}
 .dest-item:hover{background:#eff6ff}
 .dest-item:last-child{border-bottom:none}
 .ship-loading{font-size:12.5px;color:var(--muted);padding:8px 0}
+
+/* ===== SOCIAL ICONS INLINE (tambahan) ===== */
+.tb-right a{display:inline-flex;align-items:center;gap:5px}
+.tb-right a svg{vertical-align:middle}
+.ft-soc a{display:inline-flex;align-items:center;justify-content:center}
+.ft-soc a svg{display:block}

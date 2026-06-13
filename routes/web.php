@@ -24,6 +24,10 @@ use App\Http\Controllers\Admin\OrderController as AdminOrder;
 use App\Http\Controllers\Admin\PromoController as AdminPromo;
 use App\Http\Controllers\Admin\MessageController as AdminMessage;
 use App\Http\Controllers\Admin\BankAccountController as AdminBank;
+use App\Http\Controllers\Admin\UserController as AdminUser;
+use App\Http\Controllers\Admin\RoleController as AdminRole;
+use App\Http\Controllers\Admin\SeoController as AdminSeo;
+use App\Http\Controllers\Admin\ActivityController as AdminActivity;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,27 +92,55 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
-    Route::resource('products', AdminProduct::class)->except('show');
-    Route::resource('promos', AdminPromo::class)->except('show');
+    Route::middleware('permission:products.manage')->group(function () {
+        Route::resource('products', AdminProduct::class)->except('show');
+    });
+    Route::middleware('permission:promos.manage')->group(function () {
+        Route::resource('promos', AdminPromo::class)->except('show');
+    });
 
-    Route::get('categories', [AdminCategory::class, 'index'])->name('categories.index');
-    Route::post('categories', [AdminCategory::class, 'store'])->name('categories.store');
-    Route::put('categories/{category}', [AdminCategory::class, 'update'])->name('categories.update');
-    Route::delete('categories/{category}', [AdminCategory::class, 'destroy'])->name('categories.destroy');
+    Route::middleware('permission:categories.manage')->group(function () {
+        Route::get('categories', [AdminCategory::class, 'index'])->name('categories.index');
+        Route::post('categories', [AdminCategory::class, 'store'])->name('categories.store');
+        Route::put('categories/{category}', [AdminCategory::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}', [AdminCategory::class, 'destroy'])->name('categories.destroy');
+    });
 
-    Route::get('orders', [AdminOrder::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [AdminOrder::class, 'show'])->name('orders.show');
-    Route::patch('orders/{order}/status', [AdminOrder::class, 'updateStatus'])->name('orders.status');
-    Route::patch('orders/{order}/verify', [AdminOrder::class, 'verifyPayment'])->name('orders.verify');
+    Route::middleware('permission:orders.manage')->group(function () {
+        Route::get('orders', [AdminOrder::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [AdminOrder::class, 'show'])->name('orders.show');
+        Route::patch('orders/{order}/status', [AdminOrder::class, 'updateStatus'])->name('orders.status');
+        Route::patch('orders/{order}/verify', [AdminOrder::class, 'verifyPayment'])->name('orders.verify');
+    });
 
-    Route::get('banks', [AdminBank::class, 'index'])->name('banks.index');
-    Route::post('banks', [AdminBank::class, 'store'])->name('banks.store');
-    Route::put('banks/{bank}', [AdminBank::class, 'update'])->name('banks.update');
-    Route::delete('banks/{bank}', [AdminBank::class, 'destroy'])->name('banks.destroy');
+    Route::middleware('permission:banks.manage')->group(function () {
+        Route::get('banks', [AdminBank::class, 'index'])->name('banks.index');
+        Route::post('banks', [AdminBank::class, 'store'])->name('banks.store');
+        Route::put('banks/{bank}', [AdminBank::class, 'update'])->name('banks.update');
+        Route::delete('banks/{bank}', [AdminBank::class, 'destroy'])->name('banks.destroy');
+    });
 
-    Route::get('messages', [AdminMessage::class, 'index'])->name('messages.index');
-    Route::patch('messages/{message}/read', [AdminMessage::class, 'read'])->name('messages.read');
-    Route::delete('messages/{message}', [AdminMessage::class, 'destroy'])->name('messages.destroy');
+    Route::middleware('permission:messages.manage')->group(function () {
+        Route::get('messages', [AdminMessage::class, 'index'])->name('messages.index');
+        Route::patch('messages/{message}/read', [AdminMessage::class, 'read'])->name('messages.read');
+        Route::delete('messages/{message}', [AdminMessage::class, 'destroy'])->name('messages.destroy');
+    });
+
+    // ── Pengaturan ──
+    Route::middleware('permission:users.manage')->group(function () {
+        Route::resource('users', AdminUser::class)->except('show');
+    });
+    Route::middleware('permission:roles.manage')->group(function () {
+        Route::resource('roles', AdminRole::class)->except('show');
+    });
+    Route::middleware('permission:seo.manage')->group(function () {
+        Route::get('seo', [AdminSeo::class, 'index'])->name('seo.index');
+        Route::get('seo/{pageKey}', [AdminSeo::class, 'edit'])->name('seo.edit');
+        Route::put('seo/{pageKey}', [AdminSeo::class, 'update'])->name('seo.update');
+    });
+    Route::middleware('permission:activity.view')->group(function () {
+        Route::get('activity', [AdminActivity::class, 'index'])->name('activity.index');
+    });
 });

@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Category;
+use App\Models\SeoSetting;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,9 +17,32 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // share kategori aktif ke layout (nav & footer)
+        // Share kategori aktif ke layout toko (nav & footer)
         View::composer(['layouts.app', 'partials.*'], function ($view) {
-            $view->with('navCategories', Category::active()->orderBy('sort_order')->get());
+            if (Schema::hasTable('categories')) {
+                $view->with('navCategories', Category::active()->orderBy('sort_order')->get());
+            } else {
+                $view->with('navCategories', collect());
+            }
+        });
+
+        // Share menu admin (terfilter permission) ke layout admin
+        View::composer('layouts.admin', function ($view) {
+            $user = auth()->user();
+            $menus = collect(config('adminmenu'))->filter(function ($m) use ($user) {
+                return $user && $user->hasPermission($m['permission']);
+            });
+            $view->with('adminMenus', $menus);
+        });
+
+        // Share SEO global ke layout toko
+        View::composer('layouts.app', function ($view) {
+            $seo = null;
+            if (Schema::hasTable('seo_settings')) {
+                $key = $view->getData()['seoKey'] ?? 'global';
+                $seo = SeoSetting::for($key) ?? SeoSetting::for('global');
+            }
+            $view->with('seo', $seo);
         });
     }
 }

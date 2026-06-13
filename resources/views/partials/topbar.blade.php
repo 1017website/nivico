@@ -7,10 +7,10 @@
   </div>
   <div class="tb-ctr">🚚 Gratis Ongkir untuk pembelian min. Rp{{ number_format(config('shop.free_shipping_min'), 0, ',', '.') }}</div>
   <div class="tb-right">
-    <a href="#">📷 Instagram</a>
-    <a href="#">🛒 Tokopedia</a>
-    <a href="#">🏪 Shopee</a>
-    <a href="#">💬 WhatsApp</a>
+    <a href="#"><x-social-icon name="instagram" size="13" /> Instagram</a>
+    <a href="#"><x-social-icon name="tokopedia" size="13" /> Tokopedia</a>
+    <a href="#"><x-social-icon name="shopee" size="13" /> Shopee</a>
+    <a href="#"><x-social-icon name="whatsapp" size="13" /> WhatsApp</a>
   </div>
 </div>
 </div>
