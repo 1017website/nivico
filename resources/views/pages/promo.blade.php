@@ -29,7 +29,7 @@
     @foreach($promos as $promo)
       <div class="p-card" onclick="location.href='{{ route('products.index') }}'">
         <div class="p-card-img">
-          <img src="{{ $promo->image ?: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=700&q=80' }}" alt="{{ $promo->title }}">
+          <img src="{{ $promo->image ?: asset('images/placeholder-banner.svg') }}" alt="{{ $promo->title }}" onerror="this.onerror=null;this.src='/images/placeholder-banner.svg'">
           @if($promo->badge)<span class="p-card-badge">{{ $promo->badge }}</span>@endif
         </div>
         <div class="p-card-body">

@@ -21,7 +21,7 @@
       @foreach($products as $p)
         <tr>
           <td style="display:flex;align-items:center;gap:10px">
-            <img class="thumb" src="{{ $p->image }}" alt="">
+            <img class="thumb" src="{{ $p->image ?: asset('images/placeholder-product.svg') }}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">
             <div><div style="font-weight:600">{{ $p->name }}</div><div style="font-size:11.5px;color:var(--muted)">{{ $p->sku }}</div></div>
           </td>
           <td>{{ $p->category->name ?? '-' }}</td>

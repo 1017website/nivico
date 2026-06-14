@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Share konten dinamis (site_settings) ke seluruh halaman toko
-        View::composer(['layouts.app', 'partials.*', 'pages.*'], function ($view) {
+        // Share konten dinamis (site_settings) ke seluruh halaman toko + admin
+        View::composer(['layouts.app', 'layouts.admin', 'partials.*', 'pages.*'], function ($view) {
             $settings = [];
             if (Schema::hasTable('site_settings')) {
                 $settings = \App\Models\SiteSetting::allMap();

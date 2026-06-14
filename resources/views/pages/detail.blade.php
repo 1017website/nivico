@@ -11,14 +11,14 @@
 
   <div class="det-grid">
     <div>
-      <div class="det-main"><img id="det-img" src="{{ $product->image }}" alt="{{ $product->name }}"></div>
+      <div class="det-main"><img id="det-img" src="{{ $product->image ?: asset('images/placeholder-product.svg') }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
       <div class="det-thumbs" id="det-thumbs">
-        <div class="det-th on" onclick="swImg('{{ $product->image }}', this)"><img src="{{ $product->image }}" loading="lazy"></div>
+        <div class="det-th on" onclick="swImg('{{ $product->image ?: asset('images/placeholder-product.svg') }}', this)"><img src="{{ $product->image ?: asset('images/placeholder-product.svg') }}" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
         @foreach($product->images as $img)
-          <div class="det-th" onclick="swImg('{{ $img->path }}', this)"><img src="{{ $img->path }}" loading="lazy"></div>
+          <div class="det-th" onclick="swImg('{{ $img->path }}', this)"><img src="{{ $img->path }}" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
         @endforeach
         @foreach($related->take(3) as $rel)
-          <div class="det-th" onclick="swImg('{{ $rel->image }}', this)"><img src="{{ $rel->image }}" loading="lazy"></div>
+          <div class="det-th" onclick="swImg('{{ $rel->image ?: asset('images/placeholder-product.svg') }}', this)"><img src="{{ $rel->image ?: asset('images/placeholder-product.svg') }}" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
         @endforeach
       </div>
     </div>

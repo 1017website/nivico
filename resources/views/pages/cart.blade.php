@@ -29,7 +29,7 @@
 
         @foreach($items as $it)
           <div class="c-item">
-            <div class="c-img"><img src="{{ $it->product->image }}" alt="{{ $it->product->name }}"></div>
+            <div class="c-img"><img src="{{ $it->product->image ?: asset('images/placeholder-product.svg') }}" alt="{{ $it->product->name }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
             <div class="c-inf">
               <div class="c-name">{{ $it->product->name }}</div>
               <div class="c-cat">{{ $it->product->category->name }}</div>

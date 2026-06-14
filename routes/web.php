@@ -107,6 +107,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     });
     Route::middleware('permission:promos.manage')->group(function () {
         Route::resource('promos', AdminPromo::class)->except('show');
+
+        Route::get('flashsale', [\App\Http\Controllers\Admin\FlashSaleController::class, 'index'])->name('flashsale.index');
+        Route::post('flashsale/settings', [\App\Http\Controllers\Admin\FlashSaleController::class, 'updateSettings'])->name('flashsale.settings');
+        Route::patch('flashsale/{product}/toggle', [\App\Http\Controllers\Admin\FlashSaleController::class, 'toggle'])->name('flashsale.toggle');
+        Route::post('flashsale/clear', [\App\Http\Controllers\Admin\FlashSaleController::class, 'clearAll'])->name('flashsale.clear');
     });
 
     Route::middleware('permission:categories.manage')->group(function () {

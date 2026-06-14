@@ -34,7 +34,7 @@
     <tbody>
       @forelse($products as $p)
       <tr>
-        <td style="display:flex;align-items:center;gap:11px;font-weight:600">@if($p->image)<img class="thumb" src="{{ $p->image }}">@endif {{ $p->name }}</td>
+        <td style="display:flex;align-items:center;gap:11px;font-weight:600">@if($p->image)<img class="thumb" src="{{ $p->image }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">@endif {{ $p->name }}</td>
         <td style="color:var(--muted)">{{ $p->sku }}</td>
         <td>{{ $p->category->name ?? '—' }}</td>
         <td style="font-weight:800;font-size:15px">{{ $p->stock }}</td>

@@ -20,31 +20,34 @@ body{background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing
 a{text-decoration:none;color:inherit}
 .adm{display:flex;min-height:100vh}
 
-/* ── SIDEBAR ── */
-.sb{width:248px;background:linear-gradient(180deg,#0f1d6b 0%,#101a52 100%);color:#c7d2e8;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:50}
-.sb-logo{padding:22px 22px 18px;display:flex;align-items:center;gap:11px}
-.sb-logo .mark{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px;flex-shrink:0}
-.sb-logo .txt{font-weight:800;font-size:17px;color:#fff;letter-spacing:-.3px;line-height:1}
-.sb-logo .txt small{display:block;font-size:10.5px;color:#8d9bc4;font-weight:500;letter-spacing:.5px;margin-top:2px}
-.sb-nav{flex:1;padding:8px 12px;overflow-y:auto}
-.sb-nav::-webkit-scrollbar{width:5px}.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px}
-.sb-group{font-size:10.5px;font-weight:700;color:#7c8ab8;text-transform:uppercase;letter-spacing:.7px;padding:14px 12px 6px}
-.sb-nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;font-size:13.5px;font-weight:500;border-radius:10px;color:#c7d2e8;transition:all .15s;margin-bottom:2px}
-.sb-nav a:hover{background:rgba(255,255,255,.07);color:#fff}
-.sb-nav a.on{background:var(--blue);color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(37,99,235,.35)}
-.sb-nav a .ico{width:20px;text-align:center;font-size:15px;flex-shrink:0}
-.sb-foot{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08)}
-.sb-foot button{display:flex;align-items:center;gap:10px;background:none;border:none;color:#9fb0d8;font-size:13px;cursor:pointer;padding:6px;font-weight:500;transition:color .15s}
-.sb-foot button:hover{color:#fff}
+/* ── SIDEBAR (putih, aksen navy) ── */
+.sb{width:248px;background:#fff;color:#475569;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:50;border-right:1px solid var(--border)}
+.sb-logo{padding:22px 22px 18px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--border)}
+.sb-logo .mark{width:38px;height:38px;border-radius:11px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px;flex-shrink:0}
+.sb-logo .txt{font-weight:800;font-size:17px;color:var(--navy);letter-spacing:-.3px;line-height:1}
+.sb-logo .txt small{display:block;font-size:10.5px;color:#94a3b8;font-weight:500;letter-spacing:.5px;margin-top:2px}
+.sb-logo-img{max-height:42px;max-width:180px;width:auto;object-fit:contain}
+.sb-nav{flex:1;padding:10px 12px;overflow-y:auto}
+.sb-nav::-webkit-scrollbar{width:5px}.sb-nav::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:9px}
+.sb-group{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;padding:14px 12px 6px}
+.sb-nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;font-size:13.5px;font-weight:500;border-radius:10px;color:#475569;transition:all .15s;margin-bottom:2px}
+.sb-nav a:hover{background:#f1f5f9;color:var(--navy)}
+.sb-nav a.on{background:var(--navy);color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(15,29,107,.25)}
+.sb-nav a .ico{width:20px;text-align:center;font-size:15px;flex-shrink:0;color:inherit}
+.sb-nav a:hover .ico{color:var(--navy)}
+.sb-nav a.on .ico{color:#fff}
+.sb-foot{padding:14px 16px;border-top:1px solid var(--border)}
+.sb-foot button{display:flex;align-items:center;gap:10px;background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;padding:6px;font-weight:500;transition:color .15s}
+.sb-foot button:hover{color:var(--red)}
 
 /* ── MAIN ── */
 .mn{flex:1;margin-left:248px;display:flex;flex-direction:column;min-width:0}
 .tb{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:15px 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
 .tb h1{font-size:19px;font-weight:800;letter-spacing:-.4px}
 .tb-r{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--muted)}
-.tb-r .viewsite{color:var(--blue);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.tb-r .viewsite{color:var(--navy);font-weight:600;display:inline-flex;align-items:center;gap:6px}
 .tb-r .who{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
-.tb-r .who .av{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.tb-r .who .av{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 .sb-toggle{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);margin-right:6px}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(15,29,107,.4);z-index:45;backdrop-filter:blur(2px)}
 .sb-overlay.show{display:block}
@@ -143,8 +146,12 @@ tbody tr:hover td{background:#fafbff}
   <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
   <aside class="sb" id="sidebar">
     <div class="sb-logo">
-      <div class="mark">NV</div>
-      <div class="txt">NIVICO<small>ADMIN PANEL</small></div>
+      @if(!empty($site['brand.logo']))
+        <img src="{{ $site['brand.logo'] }}" alt="{{ $site['brand.name'] ?? 'NIVICO' }}" class="sb-logo-img">
+      @else
+        <div class="mark">{{ strtoupper(substr($site['brand.name'] ?? 'NV', 0, 2)) }}</div>
+        <div class="txt">{{ $site['brand.name'] ?? 'NIVICO' }}<small>ADMIN PANEL</small></div>
+      @endif
     </div>
     <nav class="sb-nav">
       @foreach($grouped as $group => $items)

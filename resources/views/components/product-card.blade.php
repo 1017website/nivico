@@ -13,7 +13,7 @@
         <div class="pc-b{{ $product->badge === 'HOT' ? ' hot' : '' }}">{{ $product->badge }}</div>
     @endif
 
-    <div class="pc-img"><img src="{{ $product->image }}" alt="{{ $product->name }}" loading="lazy"></div>
+    <div class="pc-img"><img src="{{ $product->image ?: asset('images/placeholder-product.svg') }}" alt="{{ $product->name }}" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/placeholder-product.svg') }}'"></div>
     <div class="pc-body">
         <div class="pc-name">{{ $product->name }}</div>
         <div class="pc-rat">

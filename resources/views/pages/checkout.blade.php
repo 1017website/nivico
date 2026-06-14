@@ -66,7 +66,7 @@
           <div id="co-items-list">
             @foreach($cart->items as $it)
               <div class="co-item">
-                <div class="co-iimg"><img src="{{ $it->product->image }}"></div>
+                <div class="co-iimg"><img src="{{ $it->product->image ?: asset('images/placeholder-product.svg') }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
                 <div class="co-iname">{{ $it->product->name }} x{{ $it->qty }}</div>
                 <div class="co-iprice">Rp{{ number_format($it->product->price * $it->qty, 0, ',', '.') }}</div>
               </div>

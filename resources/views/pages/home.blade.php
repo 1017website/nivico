@@ -35,7 +35,7 @@
       <div class="sl-perks" style="visibility:hidden"><div class="sp"><div class="sp-ico"></div><div class="sp-t"><div class="t1">x</div></div></div></div>
       @endif
     </div>
-    <div class="sl-r"><img src="{{ $sl['image'] ?? '' }}" alt="slide {{ $idx+1 }}"></div>
+    <div class="sl-r"><img src="{{ $sl['image'] ?: asset('images/placeholder-banner.svg') }}" alt="slide {{ $idx+1 }}" onerror="this.onerror=null;this.src='/images/placeholder-banner.svg'"></div>
   </div>
   @endforeach
   <div class="sl-dots">@foreach($slides as $idx => $sl)<div class="sd {{ $idx === 0 ? 'on' : '' }}" onclick="goSl({{ $idx }})"></div>@endforeach</div>
@@ -97,7 +97,7 @@
   <div class="sh"><h2>{{ $site['section.promo_title'] ?? 'PENAWARAN SPESIAL' }}</h2></div>
   <div class="promo-grid">
     @foreach($banners as $b)
-    <a class="promo-card" href="{{ $b['link'] ?: route('promo') }}"><img src="{{ $b['image'] ?? '' }}" alt="banner"><div class="promo-ov"><span>{{ $b['tag'] ?? '' }}</span><h3>{!! $b['title'] ?? '' !!}</h3><div class="btn-promo">{{ $b['btn'] ?? 'Lihat →' }}</div></div></a>
+    <a class="promo-card" href="{{ $b['link'] ?: route('promo') }}"><img src="{{ $b['image'] ?: asset('images/placeholder-banner.svg') }}" alt="banner" onerror="this.onerror=null;this.src='/images/placeholder-banner.svg'"><div class="promo-ov"><span>{{ $b['tag'] ?? '' }}</span><h3>{!! $b['title'] ?? '' !!}</h3><div class="btn-promo">{{ $b['btn'] ?? 'Lihat →' }}</div></div></a>
     @endforeach
   </div>
 </div></div>

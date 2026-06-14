@@ -43,7 +43,7 @@
     <tbody>
       @foreach($lowStock as $p)
         <tr>
-          <td style="display:flex;align-items:center;gap:10px"><img class="thumb" src="{{ $p->image }}" alt="">{{ $p->name }}</td>
+          <td style="display:flex;align-items:center;gap:10px"><img class="thumb" src="{{ $p->image ?: asset('images/placeholder-product.svg') }}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">{{ $p->name }}</td>
           <td style="color:var(--muted)">{{ $p->sku }}</td>
           <td><span class="badge b-cancelled">{{ $p->stock }}</span></td>
           <td><a class="btn btn-sm btn-blue" href="{{ route('admin.products.edit', $p) }}"><i class="fa-solid fa-pen"></i> Edit</a></td>
