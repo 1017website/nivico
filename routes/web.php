@@ -151,4 +151,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::middleware('permission:activity.view')->group(function () {
         Route::get('activity', [AdminActivity::class, 'index'])->name('activity.index');
     });
+
+    // ── Konten Web (frontend dinamis) ──
+    Route::middleware('permission:content.manage')->group(function () {
+        Route::get('content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
+        Route::put('content/{tab}', [\App\Http\Controllers\Admin\ContentController::class, 'update'])->name('content.update');
+    });
+
+    // ── Sistem (artisan) — khusus Super Admin ──
+    Route::middleware('permission:settings.manage')->group(function () {
+        Route::get('system', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('system.index');
+        Route::post('system/run', [\App\Http\Controllers\Admin\SystemController::class, 'run'])->name('system.run');
+    });
 });

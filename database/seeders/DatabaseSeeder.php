@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             PromoSeeder::class,
             BankAccountSeeder::class,
             AdminUserSeeder::class,
+            SiteSettingSeeder::class,
         ]);
     }
 }

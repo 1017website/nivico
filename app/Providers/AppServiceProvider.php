@@ -29,11 +29,27 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        // Share konten dinamis (site_settings) ke seluruh halaman toko
+        View::composer(['layouts.app', 'partials.*', 'pages.*'], function ($view) {
+            $settings = [];
+            if (Schema::hasTable('site_settings')) {
+                $settings = \App\Models\SiteSetting::allMap();
+            }
+            $view->with('site', $settings);
+        });
+
         // Share menu admin (terfilter permission) ke layout admin
         View::composer('layouts.admin', function ($view) {
             $user = auth()->user();
             $menus = collect(config('adminmenu'))->filter(function ($m) use ($user) {
-                return $user && $user->hasPermission($m['permission']);
+                if (! $user) {
+                    return false;
+                }
+                // menu super_only hanya untuk Super Admin
+                if (($m['super_only'] ?? false) && ! $user->isSuperAdmin()) {
+                    return false;
+                }
+                return $user->hasPermission($m['permission']);
             });
             $view->with('adminMenus', $menus);
         });

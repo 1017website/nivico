@@ -15,10 +15,9 @@
   @if($seo->og_image)<meta property="og:image" content="{{ $seo->og_image }}">@endif
   <meta property="og:type" content="website">
 @endif
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
 <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 @stack('styles')
 </head>

@@ -30,21 +30,30 @@ function toast(msg) {
   setInterval(window.nextSl, 4500);
 })();
 
-// ── COUNTDOWN FLASH SALE ──
+// ── COUNTDOWN FLASH SALE (target waktu dari data-ends) ──
 (function () {
   const h = document.getElementById('cdH');
   const m = document.getElementById('cdM');
   const s = document.getElementById('cdS');
   if (!h || !m || !s) return;
 
-  let secs = 4 * 3600 + 32 * 60 + 10;
-  setInterval(() => {
-    if (secs <= 0) return;
-    secs--;
+  const wrap = h.closest('.cd');
+  const ends = wrap && wrap.dataset.ends ? new Date(wrap.dataset.ends).getTime() : null;
+
+  function tick() {
+    let secs;
+    if (ends) {
+      secs = Math.floor((ends - Date.now()) / 1000);
+      if (secs <= 0) { h.textContent = m.textContent = s.textContent = '00'; return; }
+    } else {
+      return;
+    }
     h.textContent = String(Math.floor(secs / 3600)).padStart(2, '0');
     m.textContent = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
     s.textContent = String(secs % 60).padStart(2, '0');
-  }, 1000);
+  }
+  tick();
+  setInterval(tick, 1000);
 })();
 
 // ── DETAIL: ganti gambar utama dari thumbnail ──

@@ -2,8 +2,12 @@
 <header class="header">
 <div class="hd">
   <a class="logo" href="{{ route('home') }}">
-    <div class="logo-ring"><span class="r1">NIVICO</span><span class="r2">Electronic Mart</span></div>
-    <div class="logo-name"><div class="n1">NIVICO</div><div class="n2">Electronic Mart</div></div>
+    @if(!empty($site['brand.logo']))
+      <img src="{{ $site['brand.logo'] }}" alt="{{ $site['brand.name'] ?? 'NIVICO' }}" style="height:46px;width:auto">
+    @else
+      <div class="logo-ring"><span class="r1">{{ $site['brand.name'] ?? 'NIVICO' }}</span><span class="r2">{{ $site['brand.tagline'] ?? 'Electronic Mart' }}</span></div>
+      <div class="logo-name"><div class="n1">{{ $site['brand.name'] ?? 'NIVICO' }}</div><div class="n2">{{ $site['brand.tagline'] ?? 'Electronic Mart' }}</div></div>
+    @endif
   </a>
   <form class="srch" action="{{ route('products.index') }}" method="GET">
     <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari produk elektronik, kabel, adaptor, dll...">
