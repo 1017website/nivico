@@ -20,9 +20,19 @@ class CartController extends Controller
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
             'qty'        => 'nullable|integer|min:1',
+            'variant_id' => 'nullable|integer|exists:product_variants,id',
         ]);
 
-        $result = $this->cart->add($data['product_id'], $data['qty'] ?? 1);
+        try {
+            $result = $this->cart->add(
+                $data['product_id'],
+                $data['qty'] ?? 1,
+                $data['variant_id'] ?? null
+            );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // mis. "Silakan pilih varian" / "Varian tidak tersedia"
+            return back()->with('error', $e->validator->errors()->first());
+        }
 
         if ($request->input('redirect') === 'checkout') {
             return redirect()->route('checkout');

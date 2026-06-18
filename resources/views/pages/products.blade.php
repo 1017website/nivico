@@ -45,7 +45,7 @@
         <x-product-card :product="$p" />
       @endforeach
     </div>
-    <div style="padding:8px 0 24px">{{ $products->links() }}</div>
+    <div style="padding:8px 0 24px">{{ $products->links('vendor.pagination.nivico') }}</div>
   @endif
 </div></div>
 @endsection

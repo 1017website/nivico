@@ -18,7 +18,7 @@ class OrderService
     /** Total berat keranjang dalam gram (untuk RajaOngkir). */
     public function cartWeight($cart): int
     {
-        $w = (int) $cart->items->sum(fn ($i) => ($i->product->weight ?? config('rajaongkir.default_weight')) * $i->qty);
+        $w = (int) $cart->items->sum(fn ($i) => $i->effectiveWeight() * $i->qty);
         return max(1, $w);
     }
 
@@ -33,7 +33,8 @@ class OrderService
         }
 
         return DB::transaction(function () use ($cart, $summary, $data) {
-            $productIds = $cart->items->pluck('product_id')->all();
+            $productIds = $cart->items->pluck('product_id')->unique()->all();
+            $variantIds = $cart->items->pluck('product_variant_id')->filter()->unique()->all();
 
             // kunci baris produk agar stok tidak balapan
             $locked = Product::whereIn('id', $productIds)
@@ -41,14 +42,34 @@ class OrderService
                 ->get()
                 ->keyBy('id');
 
-            // validasi stok
+            // kunci baris varian yang dipakai
+            $lockedVariants = collect();
+            if (! empty($variantIds)) {
+                $lockedVariants = \App\Models\ProductVariant::whereIn('id', $variantIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+            }
+
+            // validasi stok (varian bila ada, jika tidak produk)
             foreach ($cart->items as $item) {
                 $p = $locked[$item->product_id] ?? null;
                 if (! $p || ! $p->is_active) {
-                    throw ValidationException::withMessages(['stock' => "Produk tidak tersedia."]);
+                    throw ValidationException::withMessages(['stock' => 'Produk tidak tersedia.']);
                 }
-                if ($p->stock < $item->qty) {
-                    throw ValidationException::withMessages(['stock' => "Stok {$p->name} tidak mencukupi (sisa {$p->stock})."]);
+
+                if ($item->product_variant_id) {
+                    $v = $lockedVariants[$item->product_variant_id] ?? null;
+                    if (! $v || ! $v->is_active) {
+                        throw ValidationException::withMessages(['stock' => "Varian {$p->name} tidak tersedia."]);
+                    }
+                    if ($v->stock < $item->qty) {
+                        throw ValidationException::withMessages(['stock' => "Stok {$p->name} ({$v->name}) tidak mencukupi (sisa {$v->stock})."]);
+                    }
+                } else {
+                    if ($p->stock < $item->qty) {
+                        throw ValidationException::withMessages(['stock' => "Stok {$p->name} tidak mencukupi (sisa {$p->stock})."]);
+                    }
                 }
             }
 
@@ -85,20 +106,37 @@ class OrderService
 
             foreach ($cart->items as $item) {
                 $p = $locked[$item->product_id];
+                $v = $item->product_variant_id ? ($lockedVariants[$item->product_variant_id] ?? null) : null;
+
+                // Harga/SKU/nama dari varian bila ada, jika tidak dari produk
+                $unitPrice = (int) ($v->price ?? $p->price);
+                $sku       = $v->sku ?: $p->sku;
+                $varName   = $v->name ?? null;
+
                 $order->items()->create([
-                    'product_id'   => $p->id,
-                    'product_name' => $p->name,
-                    'sku'          => $p->sku,
-                    'image'        => $p->image,
-                    'price'        => $p->price,
-                    'qty'          => $item->qty,
-                    'subtotal'     => $p->price * $item->qty,
+                    'product_id'         => $p->id,
+                    'product_variant_id' => $v->id ?? null,
+                    'product_name'       => $p->name,
+                    'variation_name'     => $varName,
+                    'sku'                => $sku,
+                    'image'              => $v->image ?: $p->image,
+                    'price'              => $unitPrice,
+                    'qty'                => $item->qty,
+                    'subtotal'           => $unitPrice * $item->qty,
                 ]);
 
                 // potong stok & tambah terjual
-                $before = (int) $p->stock;
-                $p->decrement('stock', $item->qty);
-                $p->increment('sold', $item->qty);
+                if ($v) {
+                    $before = (int) $v->stock;
+                    $v->decrement('stock', $item->qty);
+                    $v->increment('sold', $item->qty);
+                    // jaga konsistensi: sold produk induk ikut naik
+                    $p->increment('sold', $item->qty);
+                } else {
+                    $before = (int) $p->stock;
+                    $p->decrement('stock', $item->qty);
+                    $p->increment('sold', $item->qty);
+                }
 
                 \App\Models\StockMovement::create([
                     'product_id'   => $p->id,
@@ -106,7 +144,7 @@ class OrderService
                     'qty_change'   => -1 * (int) $item->qty,
                     'stock_before' => $before,
                     'stock_after'  => max(0, $before - (int) $item->qty),
-                    'reason'       => 'Penjualan',
+                    'reason'       => $v ? 'Penjualan (varian: '.$v->name.')' : 'Penjualan',
                     'reference'    => $order->order_number,
                     'user_id'      => $order->user_id,
                 ]);
@@ -146,7 +184,18 @@ class OrderService
         foreach ($expired as $order) {
             DB::transaction(function () use ($order) {
                 foreach ($order->items as $item) {
-                    if ($item->product_id) {
+                    if ($item->product_variant_id) {
+                        \App\Models\ProductVariant::where('id', $item->product_variant_id)->update([
+                            'stock' => DB::raw("stock + {$item->qty}"),
+                            'sold'  => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
+                        ]);
+                        // sold produk induk ikut dikoreksi
+                        if ($item->product_id) {
+                            Product::where('id', $item->product_id)->update([
+                                'sold' => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
+                            ]);
+                        }
+                    } elseif ($item->product_id) {
                         Product::where('id', $item->product_id)->update([
                             'stock' => DB::raw("stock + {$item->qty}"),
                             'sold'  => DB::raw("GREATEST(sold - {$item->qty}, 0)"),

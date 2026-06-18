@@ -12,8 +12,8 @@ class OrderItem extends Model
     use Auditable, SoftDeletes;
 
     protected $fillable = [
-        'order_id', 'product_id', 'product_name', 'sku', 'image',
-        'price', 'qty', 'subtotal',
+        'order_id', 'product_id', 'product_variant_id', 'product_name', 'variation_name',
+        'sku', 'image', 'price', 'qty', 'subtotal',
         'created_by', 'updated_by', 'deleted_by',
     ];
 
@@ -25,5 +25,10 @@ class OrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

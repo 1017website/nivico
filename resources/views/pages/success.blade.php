@@ -12,7 +12,7 @@
     <div style="background:#f9fafb;border-radius:8px;padding:14px;margin-bottom:16px;text-align:left">
       @foreach($order->items as $it)
         <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px">
-          <span>{{ $it->product_name }} × {{ $it->qty }}</span>
+          <span>{{ $it->product_name }}@if($it->variation_name) ({{ $it->variation_name }})@endif × {{ $it->qty }}</span>
           <span style="font-weight:600">Rp{{ number_format($it->subtotal, 0, ',', '.') }}</span>
         </div>
       @endforeach

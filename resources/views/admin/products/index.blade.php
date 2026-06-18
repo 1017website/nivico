@@ -22,11 +22,11 @@
         <tr>
           <td style="display:flex;align-items:center;gap:10px">
             <img class="thumb" src="{{ $p->image ?: asset('images/placeholder-product.svg') }}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">
-            <div><div style="font-weight:600">{{ $p->name }}</div><div style="font-size:11.5px;color:var(--muted)">{{ $p->sku }}</div></div>
+            <div><div style="font-weight:600">{{ $p->name }}@if($p->has_variants) <span class="badge b-completed" style="font-size:10px">Varian</span>@endif</div><div style="font-size:11.5px;color:var(--muted)">{{ $p->sku }}</div></div>
           </td>
           <td>{{ $p->category->name ?? '-' }}</td>
-          <td style="font-weight:600">Rp{{ number_format($p->price, 0, ',', '.') }}</td>
-          <td><span class="badge {{ $p->stock < 10 ? 'b-cancelled' : 'b-completed' }}">{{ $p->stock }}</span></td>
+          <td style="font-weight:600">@if($p->has_variants && $p->hasPriceRange())Rp{{ number_format($p->min_price, 0, ',', '.') }}+@else Rp{{ number_format($p->min_price, 0, ',', '.') }}@endif</td>
+          <td><span class="badge {{ $p->total_stock < 10 ? 'b-cancelled' : 'b-completed' }}">{{ $p->total_stock }}</span></td>
           <td>{{ $p->sold }}</td>
           <td><span class="badge {{ $p->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td style="white-space:nowrap">

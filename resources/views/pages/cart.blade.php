@@ -29,11 +29,11 @@
 
         @foreach($items as $it)
           <div class="c-item">
-            <div class="c-img"><img src="{{ $it->product->image ?: asset('images/placeholder-product.svg') }}" alt="{{ $it->product->name }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
+            <div class="c-img"><img src="{{ ($it->variant->image ?? null) ?: ($it->product->image ?: asset('images/placeholder-product.svg')) }}" alt="{{ $it->product->name }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
             <div class="c-inf">
-              <div class="c-name">{{ $it->product->name }}</div>
+              <div class="c-name">{{ $it->product->name }}@if($it->variant) <span style="font-size:12px;color:var(--muted)">— {{ $it->variant->name }}</span>@endif</div>
               <div class="c-cat">{{ $it->product->category->name }}</div>
-              <div class="c-price">Rp{{ number_format($it->product->price * $it->qty, 0, ',', '.') }}</div>
+              <div class="c-price">Rp{{ number_format($it->effectivePrice() * $it->qty, 0, ',', '.') }}</div>
             </div>
             <div class="c-rt">
               <form method="POST" action="{{ route('cart.remove', $it->id) }}">@csrf @method('DELETE')

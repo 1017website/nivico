@@ -548,3 +548,26 @@ input,select,textarea{font-family:inherit}
 .tb-right a svg{vertical-align:middle}
 .ft-soc a{display:inline-flex;align-items:center;justify-content:center}
 .ft-soc a svg{display:block}
+
+/* ── Pemilih varian (detail produk) ── */
+.det-variants{margin-bottom:16px}
+.var-label{display:block;font-weight:700;font-size:14px;margin-bottom:10px;color:var(--text)}
+.var-opts{display:flex;flex-wrap:wrap;gap:10px}
+.var-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:120px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;transition:all .15s;text-align:left}
+.var-opt:hover:not(.soldout):not(:disabled){border-color:var(--blue);box-shadow:0 2px 8px rgba(37,99,235,.12)}
+.var-opt .var-opt-name{font-size:13.5px;font-weight:600;color:var(--text)}
+.var-opt .var-opt-price{font-size:13px;font-weight:700;color:var(--blue)}
+.var-opt .var-opt-stock{font-size:11px;color:var(--muted)}
+.var-opt.on{border-color:var(--blue);background:#eff6ff;box-shadow:0 0 0 1px var(--blue) inset}
+.var-opt.on .var-opt-name{color:var(--blue2)}
+.var-opt.soldout,.var-opt:disabled{opacity:.5;cursor:not-allowed;background:#f8fafc}
+.var-opt.soldout .var-opt-name{text-decoration:line-through}
+.btn-beli:disabled,.btn-cart-d:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Pagination frontend ── */
+.nv-pg{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;padding:4px 0}
+.nv-pg-btn{display:flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 12px;border-radius:9px;font-size:13.5px;font-weight:600;border:1.5px solid var(--border);color:var(--text);background:#fff;text-decoration:none;transition:all .15s;cursor:pointer}
+.nv-pg-btn:hover:not(.active):not(.disabled){border-color:var(--blue);color:var(--blue)}
+.nv-pg-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);cursor:default}
+.nv-pg-btn.disabled{opacity:.4;cursor:not-allowed}
+.nv-pg-dots{padding:0 4px;color:var(--muted);font-weight:600}

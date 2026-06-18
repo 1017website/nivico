@@ -15,7 +15,7 @@
         <tbody>
           @foreach($order->items as $it)
             <tr>
-              <td style="display:flex;align-items:center;gap:10px">@if($it->image)<img class="thumb" src="{{ $it->image }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">@endif<div>{{ $it->product_name }}<div style="font-size:11.5px;color:var(--muted)">{{ $it->sku }}</div></div></td>
+              <td style="display:flex;align-items:center;gap:10px">@if($it->image)<img class="thumb" src="{{ $it->image }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">@endif<div>{{ $it->product_name }}@if($it->variation_name) <span style="font-size:11.5px;color:var(--muted)">({{ $it->variation_name }})</span>@endif<div style="font-size:11.5px;color:var(--muted)">{{ $it->sku }}</div></div></td>
               <td>Rp{{ number_format($it->price, 0, ',', '.') }}</td>
               <td>{{ $it->qty }}</td>
               <td style="font-weight:600">Rp{{ number_format($it->subtotal, 0, ',', '.') }}</td>

@@ -25,7 +25,7 @@ class Cart extends Model
 
     public function subtotal(): int
     {
-        return (int) $this->items->sum(fn ($i) => $i->product->price * $i->qty);
+        return (int) $this->items->sum(fn ($i) => $i->effectivePrice() * $i->qty);
     }
 
     public function totalQty(): int
