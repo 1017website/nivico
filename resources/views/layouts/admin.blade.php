@@ -27,6 +27,7 @@ a{text-decoration:none;color:inherit}
 .sb-logo .txt{font-weight:800;font-size:17px;color:var(--navy);letter-spacing:-.3px;line-height:1}
 .sb-logo .txt small{display:block;font-size:10.5px;color:#94a3b8;font-weight:500;letter-spacing:.5px;margin-top:2px}
 .sb-logo-img{max-height:42px;max-width:180px;width:auto;object-fit:contain}
+.sb-logo-mark{width:38px;height:38px;border-radius:11px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid var(--border)}
 .sb-nav{flex:1;padding:10px 12px;overflow-y:auto}
 .sb-nav::-webkit-scrollbar{width:5px}.sb-nav::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:9px}
 .sb-group{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;padding:14px 12px 6px}
@@ -147,11 +148,11 @@ tbody tr:hover td{background:#fafbff}
   <aside class="sb" id="sidebar">
     <div class="sb-logo">
       @if(!empty($site['brand.logo']))
-        <img src="{{ $site['brand.logo'] }}" alt="{{ $site['brand.name'] ?? 'NIVICO' }}" class="sb-logo-img">
+        <img src="{{ $site['brand.logo'] }}" alt="{{ $site['brand.name'] ?? 'NIVICO' }}" class="sb-logo-mark">
       @else
         <div class="mark">{{ strtoupper(substr($site['brand.name'] ?? 'NV', 0, 2)) }}</div>
-        <div class="txt">{{ $site['brand.name'] ?? 'NIVICO' }}<small>ADMIN PANEL</small></div>
       @endif
+      <div class="txt">{{ $site['brand.name'] ?? 'NIVICO' }}<small>ADMIN PANEL</small></div>
     </div>
     <nav class="sb-nav">
       @foreach($grouped as $group => $items)
