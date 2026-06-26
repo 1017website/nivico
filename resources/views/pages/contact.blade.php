@@ -15,19 +15,41 @@
           $kEmail   = trim($site['contact.email'] ?? '');
           $kHours   = trim($site['contact.hours'] ?? '') ?: 'Senin–Sabtu, 08.00–17.00 WIB';
 
-          // WhatsApp: ambil dari social.whatsapp; bila kosong fallback ke contact.phone.
+          // ── WhatsApp ──
+          // social.whatsapp diisi NOMOR saja (mis. 0812xxxx / 62812xxxx).
+          // Bila admin terlanjur isi URL penuh, kita ekstrak nomornya.
           $waRaw = trim($site['social.whatsapp'] ?? '');
           if ($waRaw === '') { $waRaw = $kPhone; }
-          $waLink = '';
-          $waDisplay = '';
+          $waDigits = '';
           if ($waRaw !== '') {
-              if (\Illuminate\Support\Str::startsWith($waRaw, ['http://', 'https://'])) {
-                  $waLink = $waRaw;
-                  $waDisplay = $waRaw;
-              } else {
-                  $d = preg_replace('/\D+/', '', $waRaw);
-                  if (\Illuminate\Support\Str::startsWith($d, '0')) { $d = '62'.substr($d, 1); }
-                  if ($d !== '') { $waLink = 'https://wa.me/'.$d; $waDisplay = '+'.$d; }
+              // ambil hanya angka (URL pun akan terambil nomornya, mis. phone=62812...)
+              $waDigits = preg_replace('/\D+/', '', $waRaw);
+              if (\Illuminate\Support\Str::startsWith($waDigits, '0')) {
+                  $waDigits = '62'.substr($waDigits, 1);
+              }
+          }
+          // Pesan default (bisa diatur dari CMS)
+          $waMessage = trim($site['wa.default_message'] ?? '') ?: 'Halo, saya ingin bertanya tentang produk NIVICO.';
+          $waLink = $waDigits !== '' ? 'https://wa.me/'.$waDigits.'?text='.rawurlencode($waMessage) : '';
+          // Tampilan nomor: 0812... (lebih familiar) dari digit 62...
+          $waDisplay = '';
+          if ($waDigits !== '') {
+              $waDisplay = \Illuminate\Support\Str::startsWith($waDigits, '62') ? '0'.substr($waDigits, 2) : $waDigits;
+          }
+
+          // ── Google Maps embed ──
+          // maps.embed bisa berupa: URL src embed (https://www.google.com/maps/embed?...),
+          // tag <iframe> lengkap, atau link share biasa. Kita normalisasi ke src iframe.
+          $mapsRaw = trim($site['maps.embed'] ?? '');
+          $mapsSrc = '';
+          if ($mapsRaw !== '') {
+              if (\Illuminate\Support\Str::contains($mapsRaw, '<iframe')) {
+                  // ekstrak atribut src dari tag iframe yang ditempel admin
+                  if (preg_match('/src=["\']([^"\']+)["\']/', $mapsRaw, $m)) {
+                      $mapsSrc = $m[1];
+                  }
+              } elseif (\Illuminate\Support\Str::startsWith($mapsRaw, 'http')) {
+                  $mapsSrc = $mapsRaw;
               }
           }
         @endphp
@@ -41,7 +63,13 @@
         @if($waDisplay !== '')
         <div class="k-info-item"><div class="k-ico">💬</div><div class="k-inf"><strong>WhatsApp</strong><span>{{ $waDisplay }}<br>Balas dalam 1×24 jam</span></div></div>
         @endif
+        @if($mapsSrc !== '')
+        <div class="kontak-map" style="padding:0;overflow:hidden">
+          <iframe src="{{ $mapsSrc }}" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Lokasi NIVICO Electronic Mart"></iframe>
+        </div>
+        @else
         <div class="kontak-map">🗺 Peta Lokasi NIVICO Electronic Mart — Surabaya</div>
+        @endif
       </div>
       @if($waLink !== '')
       @php

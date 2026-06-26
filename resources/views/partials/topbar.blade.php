@@ -8,18 +8,22 @@
   <div class="tb-ctr">🚚 Gratis Ongkir untuk pembelian min. Rp{{ number_format(config('shop.free_shipping_min'), 0, ',', '.') }}</div>
   <div class="tb-right">
     @php
-      // Normalisasi nomor WA -> link wa.me. Bila admin isi URL penuh, pakai apa adanya.
+      // WhatsApp: social.whatsapp diisi NOMOR saja. Ekstrak digit, susun link wa.me + pesan default.
       $waRaw = trim($site['social.whatsapp'] ?? '');
-      if ($waRaw !== '' && ! \Illuminate\Support\Str::startsWith($waRaw, ['http://', 'https://'])) {
+      $waUrl = '';
+      if ($waRaw !== '') {
           $waDigits = preg_replace('/\D+/', '', $waRaw);
           if (\Illuminate\Support\Str::startsWith($waDigits, '0')) { $waDigits = '62'.substr($waDigits, 1); }
-          $waRaw = $waDigits !== '' ? 'https://wa.me/'.$waDigits : '';
+          if ($waDigits !== '') {
+              $waMsg = trim($site['wa.default_message'] ?? '') ?: 'Halo, saya ingin bertanya tentang produk NIVICO.';
+              $waUrl = 'https://wa.me/'.$waDigits.'?text='.rawurlencode($waMsg);
+          }
       }
       $socials = [
         ['key' => 'instagram', 'url' => trim($site['social.instagram'] ?? ''), 'label' => 'Instagram', 'icon' => trim($site['social.instagram_icon'] ?? '')],
         ['key' => 'tokopedia', 'url' => trim($site['social.tokopedia'] ?? ''), 'label' => 'Tokopedia', 'icon' => trim($site['social.tokopedia_icon'] ?? '')],
         ['key' => 'shopee',    'url' => trim($site['social.shopee'] ?? ''),    'label' => 'Shopee',    'icon' => trim($site['social.shopee_icon'] ?? '')],
-        ['key' => 'whatsapp',  'url' => $waRaw,                                 'label' => 'WhatsApp',  'icon' => trim($site['social.whatsapp_icon'] ?? '')],
+        ['key' => 'whatsapp',  'url' => $waUrl,                                 'label' => 'WhatsApp',  'icon' => trim($site['social.whatsapp_icon'] ?? '')],
       ];
     @endphp
     @foreach($socials as $s)

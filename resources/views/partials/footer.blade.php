@@ -22,11 +22,19 @@
     </div>
     <p>{{ $site['footer.about'] ?? 'Pusat kebutuhan elektronik, aksesoris, tools, kabel, microphone, adaptor dan perlengkapan rumah tangga dengan harga terbaik.' }}</p>
     @php
+      // WhatsApp diisi NOMOR -> ubah jadi link wa.me + pesan default.
+      $waNum = preg_replace('/\D+/', '', trim($site['social.whatsapp'] ?? ''));
+      if (\Illuminate\Support\Str::startsWith($waNum, '0')) { $waNum = '62'.substr($waNum, 1); }
+      $waFooterUrl = '';
+      if ($waNum !== '') {
+          $waMsg = trim($site['wa.default_message'] ?? '') ?: 'Halo, saya ingin bertanya tentang produk NIVICO.';
+          $waFooterUrl = 'https://wa.me/'.$waNum.'?text='.rawurlencode($waMsg);
+      }
       $socials = [
         'instagram' => $site['social.instagram'] ?? '',
         'tokopedia' => $site['social.tokopedia'] ?? '',
         'shopee'    => $site['social.shopee'] ?? '',
-        'whatsapp'  => $site['social.whatsapp'] ?? '',
+        'whatsapp'  => $waFooterUrl,
         'facebook'  => $site['social.facebook'] ?? '',
         'tiktok'    => $site['social.tiktok'] ?? '',
       ];
