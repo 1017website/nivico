@@ -19,14 +19,4 @@
     <div class="auth-switch">Belum punya akun? <a href="{{ route('register') }}">Daftar sekarang</a></div>
   </div>
 </div>
-
-@push('styles')
-<style>
-
-@endpush
-
-@push('scripts')
-<script>
-</script>
-@endpush
 @endsection
