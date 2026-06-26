@@ -7,10 +7,26 @@
   </div>
   <div class="tb-ctr">🚚 Gratis Ongkir untuk pembelian min. Rp{{ number_format(config('shop.free_shipping_min'), 0, ',', '.') }}</div>
   <div class="tb-right">
-    <a href="#"><x-social-icon name="instagram" size="13" /> Instagram</a>
-    <a href="#"><x-social-icon name="tokopedia" size="13" /> Tokopedia</a>
-    <a href="#"><x-social-icon name="shopee" size="13" /> Shopee</a>
-    <a href="#"><x-social-icon name="whatsapp" size="13" /> WhatsApp</a>
+    @php
+      // Normalisasi nomor WA -> link wa.me. Bila admin isi URL penuh, pakai apa adanya.
+      $waRaw = trim($site['social.whatsapp'] ?? '');
+      if ($waRaw !== '' && ! \Illuminate\Support\Str::startsWith($waRaw, ['http://', 'https://'])) {
+          $waDigits = preg_replace('/\D+/', '', $waRaw);
+          if (\Illuminate\Support\Str::startsWith($waDigits, '0')) { $waDigits = '62'.substr($waDigits, 1); }
+          $waRaw = $waDigits !== '' ? 'https://wa.me/'.$waDigits : '';
+      }
+      $socials = [
+        ['key' => 'instagram', 'url' => trim($site['social.instagram'] ?? ''), 'label' => 'Instagram'],
+        ['key' => 'tokopedia', 'url' => trim($site['social.tokopedia'] ?? ''), 'label' => 'Tokopedia'],
+        ['key' => 'shopee',    'url' => trim($site['social.shopee'] ?? ''),    'label' => 'Shopee'],
+        ['key' => 'whatsapp',  'url' => $waRaw,                                 'label' => 'WhatsApp'],
+      ];
+    @endphp
+    @foreach($socials as $s)
+      @if($s['url'] !== '')
+        <a href="{{ $s['url'] }}" target="_blank" rel="noopener"><x-social-icon :name="$s['key']" size="13" /> {{ $s['label'] }}</a>
+      @endif
+    @endforeach
   </div>
 </div>
 </div>

@@ -9,17 +9,47 @@
       <div class="kontak-card">
         <h2>Informasi Kontak</h2>
         <p>Kami siap membantu Anda! Hubungi kami melalui berbagai saluran berikut.</p>
-        <div class="k-info-item"><div class="k-ico">📍</div><div class="k-inf"><strong>Alamat</strong><span>Jl. Raya Darmo No. 123, Wonokromo,<br>Surabaya, Jawa Timur 60241</span></div></div>
-        <div class="k-info-item"><div class="k-ico">📞</div><div class="k-inf"><strong>Telepon</strong><span>(031) 123-4567<br>Senin–Sabtu, 08.00–17.00 WIB</span></div></div>
-        <div class="k-info-item"><div class="k-ico">📧</div><div class="k-inf"><strong>Email</strong><span>info@nivico.id<br>support@nivico.id</span></div></div>
-        <div class="k-info-item"><div class="k-ico">💬</div><div class="k-inf"><strong>WhatsApp</strong><span>+62 812-3456-7890<br>Balas dalam 1×24 jam</span></div></div>
+        @php
+          $kAddress = trim($site['contact.address'] ?? '') ?: 'Surabaya, Jawa Timur, Indonesia';
+          $kPhone   = trim($site['contact.phone'] ?? '');
+          $kEmail   = trim($site['contact.email'] ?? '');
+          $kHours   = trim($site['contact.hours'] ?? '') ?: 'Senin–Sabtu, 08.00–17.00 WIB';
+
+          // WhatsApp: ambil dari social.whatsapp; bila kosong fallback ke contact.phone.
+          $waRaw = trim($site['social.whatsapp'] ?? '');
+          if ($waRaw === '') { $waRaw = $kPhone; }
+          $waLink = '';
+          $waDisplay = '';
+          if ($waRaw !== '') {
+              if (\Illuminate\Support\Str::startsWith($waRaw, ['http://', 'https://'])) {
+                  $waLink = $waRaw;
+                  $waDisplay = $waRaw;
+              } else {
+                  $d = preg_replace('/\D+/', '', $waRaw);
+                  if (\Illuminate\Support\Str::startsWith($d, '0')) { $d = '62'.substr($d, 1); }
+                  if ($d !== '') { $waLink = 'https://wa.me/'.$d; $waDisplay = '+'.$d; }
+              }
+          }
+        @endphp
+        <div class="k-info-item"><div class="k-ico">📍</div><div class="k-inf"><strong>Alamat</strong><span>{!! nl2br(e($kAddress)) !!}</span></div></div>
+        @if($kPhone !== '')
+        <div class="k-info-item"><div class="k-ico">📞</div><div class="k-inf"><strong>Telepon</strong><span>{{ $kPhone }}<br>{{ $kHours }}</span></div></div>
+        @endif
+        @if($kEmail !== '')
+        <div class="k-info-item"><div class="k-ico">📧</div><div class="k-inf"><strong>Email</strong><span>{{ $kEmail }}</span></div></div>
+        @endif
+        @if($waDisplay !== '')
+        <div class="k-info-item"><div class="k-ico">💬</div><div class="k-inf"><strong>WhatsApp</strong><span>{{ $waDisplay }}<br>Balas dalam 1×24 jam</span></div></div>
+        @endif
         <div class="kontak-map">🗺 Peta Lokasi NIVICO Electronic Mart — Surabaya</div>
       </div>
-      <a class="wa-card" href="https://wa.me/6281234567890" target="_blank" rel="noopener">
+      @if($waLink !== '')
+      <a class="wa-card" href="{{ $waLink }}" target="_blank" rel="noopener">
         <div class="wa-ico">💬</div>
         <div style="flex:1"><strong>Chat WhatsApp Sekarang</strong><span>Respon cepat, siap membantu Anda!</span></div>
         <svg width="20" height="20" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>
+      @endif
     </div>
     <div class="kontak-form">
       <h2>Kirim Pesan</h2>
