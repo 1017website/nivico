@@ -44,10 +44,20 @@ class ContentController extends Controller
 
         $settings = SiteSetting::where('group', $tab)->get();
 
+        // Ambil array mentah sekali. PENTING: key setting mengandung titik
+        // (mis. "hero.slides", "brand.name") sehingga TIDAK boleh diakses via
+        // dot-notation $request->input('val.hero.slides') — Laravel akan
+        // menafsirkannya sebagai nested ['val']['hero']['slides'] dan menghasilkan
+        // null (inilah penyebab konten "tidak tersimpan"). Akses langsung dengan
+        // key literal dari array.
+        $valInput  = (array) $request->input('val', []);
+        $jsonInput = (array) $request->input('json', []);
+        $files     = (array) $request->file('file', []);
+
         foreach ($settings as $s) {
             // ── JSON (array repeater: hero.slides, hero.perks, banner.promos) ──
             if ($s->type === 'json') {
-                $rows = $request->input('json.'.$s->key, []);
+                $rows = $jsonInput[$s->key] ?? [];
                 // bersihkan baris kosong total
                 $rows = collect($rows)->filter(fn ($r) => collect($r)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty())
                     ->values()->all();
@@ -57,27 +67,30 @@ class ContentController extends Controller
 
             // ── IMAGE (upload file ATAU isi URL) ──
             if ($s->type === 'image') {
-                $field = 'file.'.str_replace('.', '__', $s->key);
-                if ($request->hasFile($field)) {
+                // name file di form: file[hero__bg] (titik diganti __ agar valid)
+                $fileKey = str_replace('.', '__', $s->key);
+                $upload  = $files[$fileKey] ?? null;
+                if ($upload) {
                     if ($s->value && str_starts_with($s->value, '/storage/')) {
                         Storage::disk('public')->delete(str_replace('/storage/', '', $s->value));
                     }
-                    $path = $request->file($field)->store('content', 'public');
+                    $path = $upload->store('content', 'public');
                     $s->update(['value' => Storage::url($path)]);
-                } elseif ($request->filled('val.'.$s->key)) {
-                    $s->update(['value' => $request->input('val.'.$s->key)]);
+                } elseif (($valInput[$s->key] ?? '') !== '') {
+                    $s->update(['value' => $valInput[$s->key]]);
                 }
                 continue;
             }
 
             // ── BOOLEAN ──
             if ($s->type === 'boolean') {
-                $s->update(['value' => $request->boolean('val.'.$s->key) ? '1' : '0']);
+                $checked = isset($valInput[$s->key]) && in_array($valInput[$s->key], ['1', 1, true, 'true', 'on'], true);
+                $s->update(['value' => $checked ? '1' : '0']);
                 continue;
             }
 
             // ── text / textarea / number ──
-            $s->update(['value' => $request->input('val.'.$s->key)]);
+            $s->update(['value' => $valInput[$s->key] ?? null]);
         }
 
         return back()->with('toast', '✓ Konten "'.$this->tabs[$tab].'" disimpan.');

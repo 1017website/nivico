@@ -95,6 +95,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
     Route::middleware('permission:products.manage')->group(function () {
+        // Import produk dari Shopee (CSV) — letakkan SEBELUM resource agar
+        // 'products/import' tidak tertangkap route show/{product}.
+        Route::get('products/import', [\App\Http\Controllers\Admin\ProductImportController::class, 'form'])->name('products.import');
+        Route::post('products/import/preview', [\App\Http\Controllers\Admin\ProductImportController::class, 'preview'])->name('products.import.preview');
+        Route::post('products/import/execute', [\App\Http\Controllers\Admin\ProductImportController::class, 'execute'])->name('products.import.execute');
+
         Route::resource('products', AdminProduct::class)->except('show');
     });
 

@@ -8,7 +8,8 @@
     <input class="inp" type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / SKU produk...">
     <button class="btn btn-gray" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
   </form>
-  <a class="btn btn-blue" href="{{ route('admin.products.create') }}" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Tambah Produk</a>
+  <a class="btn btn-gray" href="{{ route('admin.products.import') }}" style="margin-left:auto"><i class="fa-solid fa-file-import"></i> Import Shopee</a>
+  <a class="btn btn-blue" href="{{ route('admin.products.create') }}"><i class="fa-solid fa-plus"></i> Tambah Produk</a>
 </div>
 
 <div class="panel">
