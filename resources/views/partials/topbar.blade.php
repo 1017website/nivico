@@ -16,15 +16,15 @@
           $waRaw = $waDigits !== '' ? 'https://wa.me/'.$waDigits : '';
       }
       $socials = [
-        ['key' => 'instagram', 'url' => trim($site['social.instagram'] ?? ''), 'label' => 'Instagram'],
-        ['key' => 'tokopedia', 'url' => trim($site['social.tokopedia'] ?? ''), 'label' => 'Tokopedia'],
-        ['key' => 'shopee',    'url' => trim($site['social.shopee'] ?? ''),    'label' => 'Shopee'],
-        ['key' => 'whatsapp',  'url' => $waRaw,                                 'label' => 'WhatsApp'],
+        ['key' => 'instagram', 'url' => trim($site['social.instagram'] ?? ''), 'label' => 'Instagram', 'icon' => trim($site['social.instagram_icon'] ?? '')],
+        ['key' => 'tokopedia', 'url' => trim($site['social.tokopedia'] ?? ''), 'label' => 'Tokopedia', 'icon' => trim($site['social.tokopedia_icon'] ?? '')],
+        ['key' => 'shopee',    'url' => trim($site['social.shopee'] ?? ''),    'label' => 'Shopee',    'icon' => trim($site['social.shopee_icon'] ?? '')],
+        ['key' => 'whatsapp',  'url' => $waRaw,                                 'label' => 'WhatsApp',  'icon' => trim($site['social.whatsapp_icon'] ?? '')],
       ];
     @endphp
     @foreach($socials as $s)
       @if($s['url'] !== '')
-        <a href="{{ $s['url'] }}" target="_blank" rel="noopener"><x-social-icon :name="$s['key']" size="13" /> {{ $s['label'] }}</a>
+        <a href="{{ $s['url'] }}" target="_blank" rel="noopener"><x-social-icon :name="$s['key']" :img="$s['icon']" size="13" /> {{ $s['label'] }}</a>
       @endif
     @endforeach
   </div>

@@ -44,9 +44,20 @@
         <div class="kontak-map">🗺 Peta Lokasi NIVICO Electronic Mart — Surabaya</div>
       </div>
       @if($waLink !== '')
+      @php
+        $waCardTitle = trim($site['wa.card_title'] ?? '') ?: 'Chat WhatsApp Sekarang';
+        $waCardSub   = trim($site['wa.card_subtitle'] ?? '') ?: 'Respon cepat, siap membantu Anda!';
+        $waCardIcon  = trim($site['social.whatsapp_icon'] ?? '');
+      @endphp
       <a class="wa-card" href="{{ $waLink }}" target="_blank" rel="noopener">
-        <div class="wa-ico">💬</div>
-        <div style="flex:1"><strong>Chat WhatsApp Sekarang</strong><span>Respon cepat, siap membantu Anda!</span></div>
+        <div class="wa-ico">
+          @if($waCardIcon !== '')
+            <img src="{{ $waCardIcon }}" alt="WhatsApp" style="width:26px;height:26px;object-fit:contain">
+          @else
+            <i class="fa-brands fa-whatsapp" style="font-size:26px;line-height:1;color:#fff" aria-hidden="true"></i>
+          @endif
+        </div>
+        <div style="flex:1"><strong>{{ $waCardTitle }}</strong><span>{{ $waCardSub }}</span></div>
         <svg width="20" height="20" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>
       @endif

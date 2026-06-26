@@ -35,7 +35,7 @@
     @if(!empty($socials))
     <div class="ft-soc">
       @foreach($socials as $name => $url)
-        <a href="{{ $url }}" target="_blank" rel="noopener" aria-label="{{ ucfirst($name) }}"><x-social-icon :name="$name" size="18" /></a>
+        <a href="{{ $url }}" target="_blank" rel="noopener" aria-label="{{ ucfirst($name) }}"><x-social-icon :name="$name" :img="trim($site['social.'.$name.'_icon'] ?? '')" size="18" /></a>
       @endforeach
     </div>
     @endif

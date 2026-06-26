@@ -1,7 +1,8 @@
-@props(['name' => '', 'size' => 16])
+@props(['name' => '', 'size' => 16, 'img' => ''])
 @php
   $s = (int) $size;
-  // Pakai Font Awesome 6 Brands (dimuat via CDN di layout).
+  $img = trim($img);
+  // Pakai Font Awesome 6 Brands (dimuat via CDN/local di layout).
   $map = [
     'instagram' => 'fa-brands fa-instagram',
     'whatsapp'  => 'fa-brands fa-whatsapp',
@@ -18,4 +19,11 @@
     'shopee'    => '<svg width="'.$s.'" height="'.$s.'" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1.5c-2.5 0-4.5 2-4.5 4.5v.6H3.3a1 1 0 0 0-1 1.08l.84 12.1a2.5 2.5 0 0 0 2.5 2.32h12.7a2.5 2.5 0 0 0 2.5-2.32l.84-12.1a1 1 0 0 0-1-1.08h-4.2v-.6c0-2.5-2-4.5-4.5-4.5Zm0 1.8c1.5 0 2.7 1.2 2.7 2.7v.6H9.3v-.6c0-1.5 1.2-2.7 2.7-2.7Zm-.3 6.4c1.9 0 3.1.9 3.1 2.4 0 1.3-1 2-2.3 2.4-1.2.3-1.6.6-1.6 1.1 0 .5.5.8 1.2.8.7 0 1.4-.2 2-.6l.5 1.4c-.7.4-1.6.6-2.5.6-1.9 0-3.1-1-3.1-2.4 0-1.4 1.1-2 2.4-2.4 1.1-.3 1.5-.5 1.5-1 0-.5-.5-.8-1.2-.8-.7 0-1.5.3-2.1.7l-.5-1.4c.7-.5 1.7-.8 2.7-.8Z"/></svg>',
   ];
 @endphp
-@if(isset($map[$key]))<i class="{{ $map[$key] }}" style="font-size:{{ $s }}px;line-height:1" aria-hidden="true"></i>@elseif(isset($svgBrands[$key])){!! $svgBrands[$key] !!}@endif
+@if($img !== '')
+  {{-- Ikon custom yang di-upload admin lewat CMS --}}
+  <img src="{{ $img }}" alt="{{ ucfirst($name) }}" width="{{ $s }}" height="{{ $s }}" style="width:{{ $s }}px;height:{{ $s }}px;object-fit:contain;display:inline-block;vertical-align:middle" loading="lazy">
+@elseif(isset($map[$key]))
+  <i class="{{ $map[$key] }}" style="font-size:{{ $s }}px;line-height:1" aria-hidden="true"></i>
+@elseif(isset($svgBrands[$key]))
+  {!! $svgBrands[$key] !!}
+@endif
