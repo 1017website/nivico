@@ -94,6 +94,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
+    Route::middleware('permission:dashboard.view')->group(function () {
+        Route::get('statistik', [\App\Http\Controllers\Admin\StatisticController::class, 'index'])->name('statistics.index');
+    });
+
     Route::middleware('permission:products.manage')->group(function () {
         // Import produk dari Shopee (CSV) — letakkan SEBELUM resource agar
         // 'products/import' tidak tertangkap route show/{product}.

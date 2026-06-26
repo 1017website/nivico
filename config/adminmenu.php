@@ -9,6 +9,7 @@
  */
 return [
     'dashboard'  => ['label' => 'Dashboard',      'icon' => 'fa-solid fa-gauge-high',     'route' => 'admin.dashboard',       'permission' => 'dashboard.view',   'group' => 'Umum'],
+    'statistics' => ['label' => 'Statistik',      'icon' => 'fa-solid fa-chart-line',     'route' => 'admin.statistics.index','permission' => 'dashboard.view',   'group' => 'Umum'],
     'orders'     => ['label' => 'Pesanan',        'icon' => 'fa-solid fa-receipt',        'route' => 'admin.orders.index',    'permission' => 'orders.manage',    'group' => 'Transaksi'],
     'products'   => ['label' => 'Produk',         'icon' => 'fa-solid fa-box',            'route' => 'admin.products.index',  'permission' => 'products.manage',  'group' => 'Katalog'],
     'stock'      => ['label' => 'Stok',           'icon' => 'fa-solid fa-warehouse',      'route' => 'admin.stock.index',     'permission' => 'stock.manage',     'group' => 'Katalog'],
