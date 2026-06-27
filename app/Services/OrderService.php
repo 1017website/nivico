@@ -109,17 +109,17 @@ class OrderService
                 $v = $item->product_variant_id ? ($lockedVariants[$item->product_variant_id] ?? null) : null;
 
                 // Harga/SKU/nama dari varian bila ada, jika tidak dari produk
-                $unitPrice = (int) ($v->price ?? $p->price);
-                $sku       = $v->sku ?: $p->sku;
-                $varName   = $v->name ?? null;
+                $unitPrice = (int) ($v?->price ?? $p->price);
+                $sku       = $v?->sku ?: $p->sku;
+                $varName   = $v?->name;
 
                 $order->items()->create([
                     'product_id'         => $p->id,
-                    'product_variant_id' => $v->id ?? null,
+                    'product_variant_id' => $v?->id,
                     'product_name'       => $p->name,
                     'variation_name'     => $varName,
                     'sku'                => $sku,
-                    'image'              => $v->image ?: $p->image,
+                    'image'              => $v?->image ?: $p->image,
                     'price'              => $unitPrice,
                     'qty'                => $item->qty,
                     'subtotal'           => $unitPrice * $item->qty,
