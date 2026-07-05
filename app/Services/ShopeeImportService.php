@@ -273,7 +273,7 @@ class ShopeeImportService
         }
         $cat = Category::firstOrCreate(
             ['name' => $name],
-            ['icon' => null, 'sort_order' => (Category::max('sort_order') ?? 0) + 1, 'is_active' => true]
+            ['icon' => 'fa-solid fa-tags', 'sort_order' => (Category::max('sort_order') ?? 0) + 1, 'is_active' => true]
         );
         return $cat->id;
     }

@@ -10,7 +10,7 @@
     <div class="nv-menu">
       @foreach($navCategories as $cat)
         <a href="{{ route('products.index', ['kategori' => $cat->slug]) }}" class="{{ request('kategori') === $cat->slug ? 'on' : '' }}">
-          <span class="nv-menu-ico">{{ $cat->icon }}</span> {{ $cat->name }}
+          <span class="nv-menu-ico">{!! $cat->iconHtml() !!}</span> {{ $cat->name }}
         </a>
       @endforeach
     </div>

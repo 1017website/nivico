@@ -158,7 +158,7 @@ tbody tr:hover td{background:#fafbff}
       @foreach($grouped as $group => $items)
         <div class="sb-group">{{ $group }}</div>
         @foreach($items as $key => $m)
-          @php $active = request()->routeIs(str_replace('.index','',$m['route']).'*'); @endphp
+          @php $active = request()->routeIs(...($m['active'] ?? [str_replace('.index','',$m['route']).'*'])); @endphp
           <a href="{{ route($m['route']) }}" class="{{ $active ? 'on' : '' }}">
             <span class="ico"><i class="{{ $m['icon'] ?? 'fa-solid fa-circle' }}"></i></span>
             <span>{{ $m['label'] }}</span>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\HtmlString;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,29 @@ class Category extends Model
                 $c->slug = Str::slug($c->name);
             }
         });
+    }
+
+
+    public function iconHtml(?string $fallback = 'fa-solid fa-tag'): HtmlString
+    {
+        $icon = trim((string) ($this->icon ?: $fallback));
+
+        if ($icon === '') {
+            $icon = $fallback;
+        }
+
+        // Backward compatible untuk data lama yang masih berupa SVG mentah.
+        if (str_starts_with($icon, '<svg')) {
+            return new HtmlString($icon);
+        }
+
+        // Format baru: simpan class Font Awesome, render sebagai <i>.
+        if (str_contains($icon, 'fa-')) {
+            return new HtmlString('<i class="'.e($icon).'" aria-hidden="true"></i>');
+        }
+
+        // Backward compatible untuk data lama berupa emoji.
+        return new HtmlString(e($icon));
     }
 
     public function products()

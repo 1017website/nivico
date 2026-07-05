@@ -340,7 +340,7 @@ class ImportShopeeCatalog extends Command
         }
         $cat = Category::firstOrCreate(
             ['slug' => Str::slug($name)],
-            ['name' => $name, 'is_active' => true]
+            ['name' => $name, 'icon' => 'fa-solid fa-tags', 'is_active' => true]
         );
         return $cache[$name] = $cat->id;
     }

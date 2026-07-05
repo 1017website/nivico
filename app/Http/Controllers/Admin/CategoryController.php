@@ -11,16 +11,21 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::withCount('products')->orderBy('sort_order')->get();
-        return view('admin.categories.index', compact('categories'));
+        $iconOptions = config('category_icons', []);
+
+        return view('admin.categories.index', compact('categories', 'iconOptions'));
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:100']);
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:120',
+        ]);
         Category::create([
             'name'       => $request->name,
-            'icon'       => $request->icon,
-            'sort_order' => Category::max('sort_order') + 1,
+            'icon'       => $request->input('icon') ?: null,
+            'sort_order' => (Category::max('sort_order') ?? 0) + 1,
             'is_active'  => true,
         ]);
         return back()->with('toast', '✓ Kategori ditambahkan');
@@ -28,10 +33,13 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        $request->validate(['name' => 'required|string|max:100']);
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:120',
+        ]);
         $category->update([
             'name'      => $request->name,
-            'icon'      => $request->icon,
+            'icon'      => $request->input('icon') ?: null,
             'is_active' => $request->boolean('is_active', true),
         ]);
         return back()->with('toast', '✓ Kategori diperbarui');

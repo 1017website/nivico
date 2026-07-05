@@ -67,7 +67,7 @@ class ScrapeShopeeShop extends Command
             ? new Category(['name' => $catName, 'slug' => Str::slug($catName)])
             : Category::firstOrCreate(
                 ['slug' => Str::slug($catName)],
-                ['name' => $catName, 'is_active' => true, 'sort_order' => 99]
+                ['name' => $catName, 'icon' => 'fa-solid fa-tags', 'is_active' => true, 'sort_order' => 99]
             );
 
         $offset    = 0;
