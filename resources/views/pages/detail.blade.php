@@ -23,10 +23,6 @@
     <div class="det-info">
       <div><span class="det-cat-tag">{{ $product->category->name }}</span></div>
       <div class="det-title">{{ $product->name }}</div>
-      <div class="det-rat">
-        <span class="stars" style="font-size:14px">★★★★{{ $product->rating >= 4.9 ? '★' : '☆' }}</span>
-        <span style="font-size:13px;color:var(--muted)">{{ number_format($product->rating, 1) }} • {{ $product->rating_count }} ulasan</span>
-      </div>
       @php
         // Data varian untuk JS (hanya varian aktif). Produk single -> array kosong.
         $variantData = $product->has_variants

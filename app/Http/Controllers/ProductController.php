@@ -11,7 +11,7 @@ class ProductController extends Controller
     // listing + filter + search
     public function index(Request $request)
     {
-        $query = Product::active()->with('category');
+        $query = Product::active()->with('category', 'variants')->availableFirst();
 
         if ($request->filled('q')) {
             $query->where('name', 'like', '%'.$request->q.'%');
@@ -36,14 +36,16 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load('category', 'images');
+        $product->load('category', 'images', 'variants');
         $related = Product::active()
+            ->with('category', 'variants')
+            ->availableFirst()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->take(6)->get();
 
         if ($related->isEmpty()) {
-            $related = Product::active()->where('id', '!=', $product->id)->take(6)->get();
+            $related = Product::active()->with('category', 'variants')->availableFirst()->where('id', '!=', $product->id)->take(6)->get();
         }
 
         return view('pages.detail', compact('product', 'related'));

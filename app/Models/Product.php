@@ -61,6 +61,28 @@ class Product extends Model
         return $q->where('is_active', true);
     }
 
+    /** Urutkan produk dengan stok tersedia di atas dan stok kosong di bawah. */
+    public function scopeAvailableFirst($q)
+    {
+        return $q->orderByRaw("
+            CASE
+                WHEN products.has_variants = 1 THEN
+                    CASE
+                        WHEN COALESCE((
+                            SELECT SUM(pv.stock)
+                            FROM product_variants pv
+                            WHERE pv.product_id = products.id
+                              AND pv.is_active = 1
+                              AND pv.deleted_at IS NULL
+                        ), 0) > 0 THEN 0
+                        ELSE 1
+                    END
+                WHEN COALESCE(products.stock, 0) > 0 THEN 0
+                ELSE 1
+            END ASC
+        " );
+    }
+
     /** Harga terendah: dari varian aktif bila bervarian, jika tidak dari kolom price. */
     public function getMinPriceAttribute(): int
     {
