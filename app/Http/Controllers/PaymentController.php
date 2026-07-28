@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderInvoiceMail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\DuitkuService;
+use App\Services\IntegrationLogger;
+use App\Services\InvoiceMailService;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
@@ -189,83 +189,155 @@ class PaymentController extends Controller
     public function duitkuCallback(Request $request)
     {
         $payload = $request->all();
+        $logger = app(IntegrationLogger::class);
+        $trace = $logger->create('duitku', 'payment_callback', 'received', [
+            'order_number' => $payload['merchantOrderId'] ?? null,
+            'reference' => $payload['reference'] ?? null,
+            'ip_address' => $request->ip(),
+            'message' => 'Callback Duitku diterima dan sedang diverifikasi.',
+            'context' => $this->safeDuitkuPayload($payload),
+        ]);
 
-        if (! $this->duitku->verifyCallback($payload)) {
-            Log::warning('Duitku callback signature tidak valid', [
-                'order' => $payload['merchantOrderId'] ?? null,
-            ]);
+        try {
+            if (! $this->duitku->verifyCallback($payload)) {
+                Log::warning('Duitku callback signature tidak valid', [
+                    'order' => $payload['merchantOrderId'] ?? null,
+                ]);
+                $logger->finish($trace, 'rejected', [
+                    'http_status' => 403,
+                    'message' => 'Callback ditolak: signature tidak valid.',
+                ]);
 
-            return response('Invalid signature', 403);
-        }
+                return response('Invalid signature', 403);
+            }
 
-        $merchantOrderId = (string) ($payload['merchantOrderId'] ?? '');
-        $order = Order::with('items')
-            ->where('duitku_merchant_order_id', $merchantOrderId)
-            ->orWhere('order_number', $merchantOrderId)
-            ->first();
+            $merchantOrderId = (string) ($payload['merchantOrderId'] ?? '');
+            $order = Order::with('items')
+                ->where('duitku_merchant_order_id', $merchantOrderId)
+                ->orWhere('order_number', $merchantOrderId)
+                ->first();
 
-        // Invoice lama tetap dikenali bila pelanggan sempat mengganti channel.
-        if (! $order && $merchantOrderId !== '') {
-            $orderNumber = preg_replace('/-[A-Z0-9]+-\d{6}$/i', '', $merchantOrderId);
-            $order = Order::with('items')->where('order_number', $orderNumber)->first();
-        }
+            // Invoice lama tetap dikenali bila pelanggan sempat mengganti channel.
+            if (! $order && $merchantOrderId !== '') {
+                $orderNumber = preg_replace('/-[A-Z0-9]+-\d{6}$/i', '', $merchantOrderId);
+                $order = Order::with('items')->where('order_number', $orderNumber)->first();
+            }
 
-        if (! $order) {
-            return response('Order not found', 404);
-        }
+            if (! $order) {
+                $logger->finish($trace, 'rejected', [
+                    'http_status' => 404,
+                    'message' => 'Callback valid, tetapi pesanan tidak ditemukan.',
+                ]);
 
-        if ($order->payment_gateway !== 'duitku') {
-            return response('Invalid payment gateway', 422);
-        }
+                return response('Order not found', 404);
+            }
 
-        if ((int) ($payload['amount'] ?? 0) !== (int) $order->total) {
-            Log::warning('Duitku callback nominal tidak cocok', [
-                'order' => $order->order_number,
-                'expected' => $order->total,
-                'received' => $payload['amount'] ?? null,
-            ]);
+            $traceIdentity = [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'reference' => $payload['reference'] ?? $order->duitku_reference,
+            ];
 
-            return response('Invalid amount', 422);
-        }
+            if ($order->payment_gateway !== 'duitku') {
+                $logger->finish($trace, 'rejected', array_merge($traceIdentity, [
+                    'http_status' => 422,
+                    'message' => 'Callback ditolak: gateway pesanan bukan Duitku.',
+                ]));
 
-        $resultCode = (string) ($payload['resultCode'] ?? '');
-        $newStatus = match ($resultCode) {
-            '00' => 'paid',
-            '01', '02' => 'failed',
-            default => 'pending',
-        };
+                return response('Invalid payment gateway', 422);
+            }
 
-        if ($order->payment_status === 'paid' && $newStatus !== 'paid') {
+            if ((int) ($payload['amount'] ?? 0) !== (int) $order->total) {
+                Log::warning('Duitku callback nominal tidak cocok', [
+                    'order' => $order->order_number,
+                    'expected' => $order->total,
+                    'received' => $payload['amount'] ?? null,
+                ]);
+                $logger->finish($trace, 'rejected', array_merge($traceIdentity, [
+                    'http_status' => 422,
+                    'message' => 'Callback ditolak: nominal pembayaran tidak cocok.',
+                    'context' => [
+                        'expected_amount' => (int) $order->total,
+                        'received_amount' => (int) ($payload['amount'] ?? 0),
+                    ],
+                ]));
+
+                return response('Invalid amount', 422);
+            }
+
+            $resultCode = (string) ($payload['resultCode'] ?? '');
+            $newStatus = match ($resultCode) {
+                '00' => 'paid',
+                '01', '02' => 'failed',
+                default => 'pending',
+            };
+
+            if ($order->payment_status === 'paid' && $newStatus !== 'paid') {
+                $logger->finish($trace, 'ignored', array_merge($traceIdentity, [
+                    'http_status' => 200,
+                    'message' => 'Callback diabaikan agar status lunas tidak mundur.',
+                    'context' => [
+                        'previous_payment_status' => $order->payment_status,
+                        'callback_payment_status' => $newStatus,
+                    ],
+                ]));
+
+                return response('OK', 200);
+            }
+
+            $wasCancelled = $order->status === 'cancelled';
+            $previousStatus = $order->payment_status;
+            $update = [
+                'payment_status' => $newStatus,
+                'duitku_reference' => $payload['reference'] ?? $order->duitku_reference,
+                'duitku_payment_method' => $payload['paymentCode'] ?? $order->duitku_payment_method,
+                'duitku_publisher_order_id' => $payload['publisherOrderId'] ?? $order->duitku_publisher_order_id,
+            ];
+
+            if ($newStatus === 'paid') {
+                $update['paid_at'] = now();
+                $update['status'] = 'paid';
+            } elseif ($newStatus === 'failed') {
+                $update['status'] = 'cancelled';
+            }
+
+            $changed = $previousStatus !== $newStatus;
+            $order->update($update);
+
+            if ($changed && $newStatus === 'paid') {
+                $this->sendInvoice($order->fresh('items'), 'paid', 'duitku_callback');
+            }
+
+            if ($changed && $newStatus === 'failed' && ! $wasCancelled) {
+                $this->restock($order);
+            }
+
+            $logger->finish($trace, 'processed', array_merge($traceIdentity, [
+                'http_status' => 200,
+                'message' => $changed
+                    ? "Callback berhasil diproses: {$previousStatus} → {$newStatus}."
+                    : "Callback valid tanpa perubahan status ({$newStatus}).",
+                'context' => [
+                    'previous_payment_status' => $previousStatus,
+                    'new_payment_status' => $newStatus,
+                    'status_changed' => $changed,
+                ],
+            ]));
+
             return response('OK', 200);
+        } catch (\Throwable $e) {
+            $logger->finish($trace, 'failed', [
+                'http_status' => 500,
+                'message' => $e->getMessage(),
+                'context' => ['exception' => $e::class],
+            ]);
+            Log::error('Duitku callback gagal diproses', [
+                'order' => $payload['merchantOrderId'] ?? null,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response('Internal server error', 500);
         }
-
-        $wasCancelled = $order->status === 'cancelled';
-        $update = [
-            'payment_status' => $newStatus,
-            'duitku_reference' => $payload['reference'] ?? $order->duitku_reference,
-            'duitku_payment_method' => $payload['paymentCode'] ?? $order->duitku_payment_method,
-            'duitku_publisher_order_id' => $payload['publisherOrderId'] ?? $order->duitku_publisher_order_id,
-        ];
-
-        if ($newStatus === 'paid') {
-            $update['paid_at'] = now();
-            $update['status'] = 'paid';
-        } elseif ($newStatus === 'failed') {
-            $update['status'] = 'cancelled';
-        }
-
-        $changed = $order->payment_status !== $newStatus;
-        $order->update($update);
-
-        if ($changed && $newStatus === 'paid') {
-            $this->sendInvoice($order->fresh('items'), 'paid');
-        }
-
-        if ($changed && $newStatus === 'failed' && ! $wasCancelled) {
-            $this->restock($order);
-        }
-
-        return response('OK', 200);
     }
 
     /**
@@ -288,17 +360,19 @@ class PaymentController extends Controller
     }
 
     /** Kirim email invoice; gagal-aman. */
-    protected function sendInvoice(Order $order, string $kind): void
+    protected function sendInvoice(Order $order, string $kind, string $source = 'payment_callback'): void
     {
-        $to = $order->email ?: optional($order->user)->email;
-        if (! $to) {
-            return;
-        }
-        try {
-            Mail::to($to)->send(new OrderInvoiceMail($order, $kind));
-        } catch (\Throwable $e) {
-            Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
-        }
+        app(InvoiceMailService::class)->send($order, $kind, $source);
+    }
+
+    protected function safeDuitkuPayload(array $payload): array
+    {
+        return collect($payload)->only([
+            'merchantOrderId', 'amount', 'resultCode', 'paymentCode',
+            'reference', 'publisherOrderId', 'productDetail',
+        ])->all() + [
+            'signature_present' => ! empty($payload['signature']),
+        ];
     }
 
     protected function restock(Order $order): void

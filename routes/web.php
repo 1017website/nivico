@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategory;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FlashSaleController;
+use App\Http\Controllers\Admin\IntegrationLogController as AdminIntegrationLog;
 use App\Http\Controllers\Admin\MessageController as AdminMessage;
 use App\Http\Controllers\Admin\OrderController as AdminOrder;
 use App\Http\Controllers\Admin\ProductController as AdminProduct;
@@ -176,6 +177,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     });
     Route::middleware('permission:activity.view')->group(function () {
         Route::get('activity', [AdminActivity::class, 'index'])->name('activity.index');
+        Route::get('integration-logs', [AdminIntegrationLog::class, 'index'])->name('integration-logs.index');
+        Route::get('integration-logs/{integrationLog}', [AdminIntegrationLog::class, 'show'])->name('integration-logs.show');
     });
 
     // ── Konten Web (frontend dinamis) ──

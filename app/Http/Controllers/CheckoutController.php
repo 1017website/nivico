@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderInvoiceMail;
 use App\Models\BankAccount;
 use App\Models\Order;
 use App\Services\CartService;
 use App\Services\DuitkuService;
+use App\Services\InvoiceMailService;
 use App\Services\MidtransService;
 use App\Services\OrderService;
 use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
@@ -130,15 +128,7 @@ class CheckoutController extends Controller
     /** Kirim email invoice; dibungkus try-catch agar kegagalan SMTP tidak mengganggu alur. */
     protected function sendInvoice(Order $order, string $kind): void
     {
-        $to = $order->email ?: optional($order->user)->email;
-        if (! $to) {
-            return;
-        }
-        try {
-            Mail::to($to)->send(new OrderInvoiceMail($order, $kind));
-        } catch (\Throwable $e) {
-            Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
-        }
+        app(InvoiceMailService::class)->send($order, $kind, 'checkout');
     }
 
     /** Halaman sukses (juga finish redirect Midtrans). */

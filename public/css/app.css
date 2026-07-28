@@ -379,6 +379,11 @@ input,select,textarea{font-family:inherit}
 .auth-opts a:hover{text-decoration:underline}
 .auth-opts label{display:flex;align-items:center;gap:6px;cursor:pointer}
 .auth-opts input[type=checkbox]{accent-color:var(--navy)}
+.auth-consent{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:9px;margin:7px 0 17px}
+.auth-consent input[type=checkbox]{width:16px;height:16px;margin:2px 0 0;accent-color:var(--navy);cursor:pointer}
+.auth-consent label{color:var(--text);font-size:12.5px;line-height:1.55;cursor:pointer}
+.auth-consent a{color:var(--blue);white-space:nowrap;cursor:pointer}
+.auth-consent a:hover{text-decoration:underline}
 .btn-auth{width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:14.5px;font-weight:700;transition:background .15s;margin-top:4px}
 .btn-auth:hover{background:var(--navy2)}
 .auth-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}

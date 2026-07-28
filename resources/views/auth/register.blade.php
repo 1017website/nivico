@@ -19,7 +19,12 @@
       <div class="auth-fg"><label>No. Telepon</label><input type="tel" name="phone" value="{{ old('phone') }}" placeholder="08xx-xxxx-xxxx"></div>
       <div class="auth-fg"><label>Password</label><div class="pw-wrap"><input type="password" name="password" placeholder="Min. 8 karakter" id="pw2" required><button type="button" class="pw-toggle" onclick="togglePw('pw2')">👁</button></div></div>
       <div class="auth-fg"><label>Konfirmasi Password</label><div class="pw-wrap"><input type="password" name="password_confirmation" placeholder="Ulangi password" id="pw3" required><button type="button" class="pw-toggle" onclick="togglePw('pw3')">👁</button></div></div>
-      <div class="auth-opts" style="justify-content:flex-start"><label><input type="checkbox" name="agree" value="1" required> Saya setuju dengan <a style="color:var(--blue)">Syarat &amp; Ketentuan</a> dan <a style="color:var(--blue)">Kebijakan Privasi</a></label></div>
+      <div class="auth-consent">
+        <input type="checkbox" name="agree" value="1" id="agree" required>
+        <label for="agree">
+          Saya setuju dengan <a>Syarat &amp; Ketentuan</a> dan <a>Kebijakan Privasi</a>
+        </label>
+      </div>
       <button class="btn-auth" type="submit">Buat Akun</button>
     </form>
 

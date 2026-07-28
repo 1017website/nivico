@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\OrderInvoiceMail;
 use App\Models\Order;
+use App\Services\InvoiceMailService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -66,14 +64,11 @@ class OrderController extends Controller
                 ]);
 
                 // Kirim hanya ketika status benar-benar berubah menjadi lunas.
-                $to = $order->email ?: optional($order->user)->email;
-                if ($to) {
-                    try {
-                        Mail::to($to)->send(new OrderInvoiceMail($order->fresh(['items', 'bankAccount']), 'paid'));
-                    } catch (\Throwable $e) {
-                        Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
-                    }
-                }
+                app(InvoiceMailService::class)->send(
+                    $order->fresh(['items', 'bankAccount']),
+                    'paid',
+                    'admin_manual_approval'
+                );
             }
             $msg = '✓ Pembayaran disetujui';
         } else {
