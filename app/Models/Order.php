@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use HasFactory, Auditable, SoftDeletes;
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'order_number', 'user_id', 'recipient_name', 'phone', 'email', 'address',
@@ -19,6 +18,7 @@ class Order extends Model
         'shipping_weight', 'shipping_cost', 'tracking_number',
         'payment_method', 'payment_gateway', 'payment_status',
         'snap_token', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type',
+        'duitku_reference', 'duitku_merchant_order_id', 'duitku_payment_url', 'duitku_payment_method', 'duitku_publisher_order_id',
         'paid_at', 'bank_account_id', 'payment_proof',
         'subtotal', 'discount', 'promo_id', 'total', 'status', 'expires_at',
         'created_by', 'updated_by', 'deleted_by',
@@ -26,7 +26,7 @@ class Order extends Model
 
     protected $casts = [
         'expires_at' => 'datetime',
-        'paid_at'    => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function items()
@@ -79,32 +79,33 @@ class Order extends Model
         } elseif (! str_starts_with($digits, '62')) {
             $digits = '62'.$digits;
         }
+
         return $digits;
     }
 
     public function statusLabel(): string
     {
         return match ($this->status) {
-            'pending'    => 'Menunggu Pembayaran',
-            'paid'       => 'Sudah Dibayar',
+            'pending' => 'Menunggu Pembayaran',
+            'paid' => 'Sudah Dibayar',
             'processing' => 'Diproses',
-            'shipped'    => 'Dikirim',
-            'completed'  => 'Selesai',
-            'cancelled'  => 'Dibatalkan',
-            default      => ucfirst($this->status),
+            'shipped' => 'Dikirim',
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst($this->status),
         };
     }
 
     public function paymentStatusLabel(): string
     {
         return match ($this->payment_status) {
-            'unpaid'   => 'Belum Bayar',
-            'pending'  => 'Menunggu Verifikasi',
-            'paid'     => 'Lunas',
-            'failed'   => 'Gagal',
-            'expired'  => 'Kedaluwarsa',
+            'unpaid' => 'Belum Bayar',
+            'pending' => 'Menunggu Verifikasi',
+            'paid' => 'Lunas',
+            'failed' => 'Gagal',
+            'expired' => 'Kedaluwarsa',
             'refunded' => 'Dikembalikan',
-            default    => ucfirst($this->payment_status),
+            default => ucfirst($this->payment_status),
         };
     }
 }

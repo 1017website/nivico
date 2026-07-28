@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderInvoiceMail;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -19,15 +22,17 @@ class OrderController extends Controller
         }
         if ($request->filled('q')) {
             $query->where('order_number', 'like', '%'.$request->q.'%')
-                  ->orWhere('recipient_name', 'like', '%'.$request->q.'%');
+                ->orWhere('recipient_name', 'like', '%'.$request->q.'%');
         }
         $orders = $query->paginate(15)->withQueryString();
+
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show(Order $order)
     {
         $order->load('items', 'user', 'promo', 'bankAccount');
+
         return view('admin.orders.show', compact('order'));
     }
 
@@ -41,6 +46,7 @@ class OrderController extends Controller
             'status' => $request->status,
             'tracking_number' => $request->tracking_number ?: $order->tracking_number,
         ]);
+
         return back()->with('toast', '✓ Status pesanan diperbarui');
     }
 
@@ -50,18 +56,23 @@ class OrderController extends Controller
         $request->validate(['action' => 'required|in:approve,reject']);
 
         if ($request->action === 'approve') {
-            $order->update([
-                'payment_status' => 'paid',
-                'paid_at'        => now(),
-                'status'         => $order->status === 'pending' ? 'paid' : $order->status,
-            ]);
-            // kirim invoice "lunas"
-            $to = $order->email ?: optional($order->user)->email;
-            if ($to) {
-                try {
-                    \Illuminate\Support\Facades\Mail::to($to)->send(new \App\Mail\OrderInvoiceMail($order->fresh('items'), 'paid'));
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
+            $wasPaid = $order->payment_status === 'paid';
+
+            if (! $wasPaid) {
+                $order->update([
+                    'payment_status' => 'paid',
+                    'paid_at' => now(),
+                    'status' => $order->status === 'pending' ? 'paid' : $order->status,
+                ]);
+
+                // Kirim hanya ketika status benar-benar berubah menjadi lunas.
+                $to = $order->email ?: optional($order->user)->email;
+                if ($to) {
+                    try {
+                        Mail::to($to)->send(new OrderInvoiceMail($order->fresh(['items', 'bankAccount']), 'paid'));
+                    } catch (\Throwable $e) {
+                        Log::error('Gagal kirim invoice', ['order' => $order->order_number, 'msg' => $e->getMessage()]);
+                    }
                 }
             }
             $msg = '✓ Pembayaran disetujui';

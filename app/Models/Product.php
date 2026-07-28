@@ -3,15 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory, Auditable, SoftDeletes;
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'sku', 'price', 'old_price', 'badge',
@@ -64,7 +63,7 @@ class Product extends Model
     /** Urutkan produk dengan stok tersedia di atas dan stok kosong di bawah. */
     public function scopeAvailableFirst($q)
     {
-        return $q->orderByRaw("
+        return $q->orderByRaw('
             CASE
                 WHEN products.has_variants = 1 THEN
                     CASE
@@ -80,7 +79,7 @@ class Product extends Model
                 WHEN COALESCE(products.stock, 0) > 0 THEN 0
                 ELSE 1
             END ASC
-        " );
+        ');
     }
 
     /** Harga terendah: dari varian aktif bila bervarian, jika tidak dari kolom price. */
@@ -88,8 +87,10 @@ class Product extends Model
     {
         if ($this->has_variants) {
             $min = $this->variants->where('is_active', true)->min('price');
+
             return (int) ($min ?? $this->price);
         }
+
         return (int) $this->price;
     }
 
@@ -98,8 +99,10 @@ class Product extends Model
     {
         if ($this->has_variants) {
             $max = $this->variants->where('is_active', true)->max('price');
+
             return (int) ($max ?? $this->price);
         }
+
         return (int) $this->price;
     }
 
@@ -109,6 +112,7 @@ class Product extends Model
         if ($this->has_variants) {
             return (int) $this->variants->where('is_active', true)->sum('stock');
         }
+
         return (int) $this->stock;
     }
 
@@ -124,7 +128,20 @@ class Product extends Model
         if (! $this->old_price || $this->old_price <= $this->price) {
             return null;
         }
+
         return (int) round((1 - $this->price / $this->old_price) * 100);
+    }
+
+    /** Deskripsi yang selalu siap ditampilkan, termasuk untuk data katalog lama. */
+    public function getDisplayDescriptionAttribute(): string
+    {
+        $description = trim((string) $this->description);
+
+        if ($description !== '') {
+            return $description;
+        }
+
+        return "{$this->name} adalah produk elektronik pilihan NIVICO untuk kebutuhan rumah, usaha, dan aktivitas sehari-hari. Hubungi kami apabila Anda memerlukan detail spesifikasi tambahan.";
     }
 
     public function getRouteKeyName(): string

@@ -1,33 +1,38 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\AccountController;
 // Frontend
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\PromoController;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\PaymentController;
-
-// Auth
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-
-// Admin
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ProductController as AdminProduct;
-use App\Http\Controllers\Admin\CategoryController as AdminCategory;
-use App\Http\Controllers\Admin\OrderController as AdminOrder;
-use App\Http\Controllers\Admin\PromoController as AdminPromo;
-use App\Http\Controllers\Admin\MessageController as AdminMessage;
+use App\Http\Controllers\Admin\ActivityController as AdminActivity;
 use App\Http\Controllers\Admin\BankAccountController as AdminBank;
-use App\Http\Controllers\Admin\UserController as AdminUser;
+use App\Http\Controllers\Admin\CategoryController as AdminCategory;
+use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FlashSaleController;
+use App\Http\Controllers\Admin\MessageController as AdminMessage;
+use App\Http\Controllers\Admin\OrderController as AdminOrder;
+use App\Http\Controllers\Admin\ProductController as AdminProduct;
+// Auth
+use App\Http\Controllers\Admin\ProductImportController;
+use App\Http\Controllers\Admin\PromoController as AdminPromo;
+// Admin
 use App\Http\Controllers\Admin\RoleController as AdminRole;
 use App\Http\Controllers\Admin\SeoController as AdminSeo;
-use App\Http\Controllers\Admin\ActivityController as AdminActivity;
+use App\Http\Controllers\Admin\StatisticController;
+use App\Http\Controllers\Admin\StockController;
+use App\Http\Controllers\Admin\SystemController;
+use App\Http\Controllers\Admin\UserController as AdminUser;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PromoController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -67,11 +72,16 @@ Route::post('/checkout/shipping', [CheckoutController::class, 'calculateShipping
 // Pembayaran
 Route::get('/pembayaran/{orderNumber}', [PaymentController::class, 'show'])->name('payment.show');
 Route::post('/pembayaran/{orderNumber}/bukti', [PaymentController::class, 'uploadProof'])->name('payment.proof');
+Route::post('/pembayaran/{orderNumber}/duitku', [PaymentController::class, 'duitkuPay'])->name('payment.duitku');
 // alias agar finish-redirect Midtrans punya nama order.show
 Route::get('/pesanan/{orderNumber}', [PaymentController::class, 'show'])->name('order.show');
 
 // Webhook Midtrans (tanpa CSRF — dikecualikan di bootstrap bila perlu)
-Route::post('/midtrans/notify', [PaymentController::class, 'midtransNotify'])->name('midtrans.notify')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+Route::post('/midtrans/notify', [PaymentController::class, 'midtransNotify'])->name('midtrans.notify')->withoutMiddleware([ValidateCsrfToken::class]);
+
+// Callback server-to-server dan return URL Duitku.
+Route::post('/duitku/callback', [PaymentController::class, 'duitkuCallback'])->name('duitku.callback')->withoutMiddleware([ValidateCsrfToken::class]);
+Route::get('/duitku/kembali/{orderNumber}', [PaymentController::class, 'duitkuReturn'])->name('duitku.return');
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +95,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register'])->name('register.store');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+Route::get('/akun', [AccountController::class, 'index'])->middleware('auth')->name('account.dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -95,33 +106,33 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
     Route::middleware('permission:dashboard.view')->group(function () {
-        Route::get('statistik', [\App\Http\Controllers\Admin\StatisticController::class, 'index'])->name('statistics.index');
+        Route::get('statistik', [StatisticController::class, 'index'])->name('statistics.index');
     });
 
     Route::middleware('permission:products.manage')->group(function () {
         // Import produk dari Shopee (CSV) — letakkan SEBELUM resource agar
         // 'products/import' tidak tertangkap route show/{product}.
-        Route::get('products/import', [\App\Http\Controllers\Admin\ProductImportController::class, 'form'])->name('products.import');
-        Route::post('products/import/preview', [\App\Http\Controllers\Admin\ProductImportController::class, 'preview'])->name('products.import.preview');
-        Route::post('products/import/execute', [\App\Http\Controllers\Admin\ProductImportController::class, 'execute'])->name('products.import.execute');
+        Route::get('products/import', [ProductImportController::class, 'form'])->name('products.import');
+        Route::post('products/import/preview', [ProductImportController::class, 'preview'])->name('products.import.preview');
+        Route::post('products/import/execute', [ProductImportController::class, 'execute'])->name('products.import.execute');
 
         Route::resource('products', AdminProduct::class)->except('show');
     });
 
     Route::middleware('permission:stock.manage')->group(function () {
-        Route::get('stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('stock.index');
-        Route::post('stock/adjust', [\App\Http\Controllers\Admin\StockController::class, 'adjust'])->name('stock.adjust');
-        Route::get('stock/opname', [\App\Http\Controllers\Admin\StockController::class, 'opname'])->name('stock.opname');
-        Route::post('stock/opname', [\App\Http\Controllers\Admin\StockController::class, 'opnameStore'])->name('stock.opname.store');
-        Route::get('stock/movements', [\App\Http\Controllers\Admin\StockController::class, 'movements'])->name('stock.movements');
+        Route::get('stock', [StockController::class, 'index'])->name('stock.index');
+        Route::post('stock/adjust', [StockController::class, 'adjust'])->name('stock.adjust');
+        Route::get('stock/opname', [StockController::class, 'opname'])->name('stock.opname');
+        Route::post('stock/opname', [StockController::class, 'opnameStore'])->name('stock.opname.store');
+        Route::get('stock/movements', [StockController::class, 'movements'])->name('stock.movements');
     });
     Route::middleware('permission:promos.manage')->group(function () {
         Route::resource('promos', AdminPromo::class)->except('show');
 
-        Route::get('flashsale', [\App\Http\Controllers\Admin\FlashSaleController::class, 'index'])->name('flashsale.index');
-        Route::post('flashsale/settings', [\App\Http\Controllers\Admin\FlashSaleController::class, 'updateSettings'])->name('flashsale.settings');
-        Route::patch('flashsale/{product}/toggle', [\App\Http\Controllers\Admin\FlashSaleController::class, 'toggle'])->name('flashsale.toggle');
-        Route::post('flashsale/clear', [\App\Http\Controllers\Admin\FlashSaleController::class, 'clearAll'])->name('flashsale.clear');
+        Route::get('flashsale', [FlashSaleController::class, 'index'])->name('flashsale.index');
+        Route::post('flashsale/settings', [FlashSaleController::class, 'updateSettings'])->name('flashsale.settings');
+        Route::patch('flashsale/{product}/toggle', [FlashSaleController::class, 'toggle'])->name('flashsale.toggle');
+        Route::post('flashsale/clear', [FlashSaleController::class, 'clearAll'])->name('flashsale.clear');
     });
 
     Route::middleware('permission:categories.manage')->group(function () {
@@ -169,13 +180,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // ── Konten Web (frontend dinamis) ──
     Route::middleware('permission:content.manage')->group(function () {
-        Route::get('content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
-        Route::put('content/{tab}', [\App\Http\Controllers\Admin\ContentController::class, 'update'])->name('content.update');
+        Route::get('content', [ContentController::class, 'index'])->name('content.index');
+        Route::put('content/{tab}', [ContentController::class, 'update'])->name('content.update');
     });
 
     // ── Sistem (artisan) — khusus Super Admin ──
     Route::middleware('permission:settings.manage')->group(function () {
-        Route::get('system', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('system.index');
-        Route::post('system/run', [\App\Http\Controllers\Admin\SystemController::class, 'run'])->name('system.run');
+        Route::get('system', [SystemController::class, 'index'])->name('system.index');
+        Route::post('system/run', [SystemController::class, 'run'])->name('system.run');
     });
 });

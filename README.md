@@ -24,7 +24,8 @@ Aplikasi e-commerce toko elektronik (kabel, microphone, adaptor, baterai, tools,
 - Scheduler melepas order `pending` kedaluwarsa (24 jam) & mengembalikan stok (`php artisan schedule:run`)
 - Promo: tipe potongan tetap / persen (dengan cap) / gratis ongkir, validasi minimal belanja
 - **Ongkir real-time** via RajaOngkir/Komerce (cari kota/kecamatan + hitung tarif per kurir, fallback ke tarif statis bila API belum diisi)
-- **Pembayaran**: Midtrans Snap (otomatis: kartu, e-wallet, VA, QRIS) + Transfer bank manual (upload bukti, verifikasi admin)
+- **Pembayaran**: Duitku POP Sandbox dan Midtrans Snap (otomatis: kartu, e-wallet, VA, QRIS) + Transfer bank manual (upload bukti, verifikasi admin)
+- Callback Duitku dengan validasi HMAC SHA-256, pencocokan nominal, dan pembaruan status idempoten
 - Webhook Midtrans (verifikasi signature SHA-512, update status pembayaran, restock otomatis bila expired/failed)
 
 ## Persyaratan
@@ -68,7 +69,7 @@ php artisan serve
 
 Panel admin: `http://localhost:8000/admin`
 
-## Konfigurasi RajaOngkir & Midtrans
+## Konfigurasi RajaOngkir, Duitku & Midtrans
 
 Isi di `.env` (lihat `.env.example`):
 
@@ -83,11 +84,20 @@ RAJAONGKIR_COURIERS=jne:sicepat:jnt
 MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxx
 MIDTRANS_SERVER_KEY=SB-Mid-server-xxxxx
 MIDTRANS_IS_PRODUCTION=false
+
+# Duitku POP — gunakan project Sandbox saat proses verifikasi
+DUITKU_MERCHANT_CODE=Dxxxx
+DUITKU_API_KEY=xxxxxxxx
+DUITKU_IS_PRODUCTION=false
+DUITKU_EXPIRY_PERIOD=60
 ```
 
 - Jika **RajaOngkir kosong**, checkout otomatis memakai tarif statis (JNE/SiCepat/J&T) sebagai fallback.
 - Jika **Midtrans kosong**, opsi pembayaran otomatis disembunyikan; transfer bank manual tetap berfungsi.
 - Set **URL notifikasi** di dashboard Midtrans ke: `https://domain-anda.com/midtrans/notify`
+- Jika **Duitku kosong**, opsi Duitku disembunyikan. Callback Sandbox: `https://domain-anda.com/duitku/callback`.
+- Return URL Duitku dibuat otomatis per pesanan dan dikirim saat pembuatan invoice.
+- Akun testing pelanggan untuk verifikasi member area: `customer@nivico.id` / `password`.
 - Rekening bank untuk transfer manual dikelola di panel admin → **Rekening Bank**.
 
 ## Catatan Deploy (cPanel / shared hosting)

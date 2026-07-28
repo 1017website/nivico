@@ -15,6 +15,50 @@
       </div>
       <a class="btn-pay-now" href="{{ route('order.success', $order->order_number) }}" style="display:block;text-align:center;text-decoration:none;margin-top:16px">Lihat Detail Pesanan</a>
 
+    @elseif($order->payment_gateway === 'duitku')
+      {{-- DUITKU DIRECT CHANNEL --}}
+      @if(count($duitkuMethods))
+        <div class="duitku-method-head">
+          <div>
+            <span class="sandbox-badge">DUITKU SANDBOX</span>
+            <h3>Pilih Metode Pembayaran</h3>
+            <p>Pilih salah satu channel yang tersedia untuk melanjutkan pembayaran.</p>
+          </div>
+        </div>
+        <form method="POST" action="{{ route('payment.duitku', $order->order_number) }}">
+          @csrf
+          <div class="duitku-method-grid">
+            @foreach($duitkuMethods as $method)
+              <button class="duitku-method-card{{ $order->duitku_payment_method === $method['paymentMethod'] ? ' selected' : '' }}" type="submit" name="payment_method" value="{{ $method['paymentMethod'] }}">
+                <span class="duitku-method-logo">
+                  @if($method['paymentImage'])
+                    <img src="{{ $method['paymentImage'] }}" alt="" loading="lazy" onerror="this.style.display='none'">
+                  @else
+                    <span>💳</span>
+                  @endif
+                </span>
+                <span class="duitku-method-info">
+                  <strong>{{ $method['paymentName'] }}</strong>
+                  <small>
+                    @if((int) $method['totalFee'] > 0)
+                      Biaya layanan Rp{{ number_format((int) $method['totalFee'], 0, ',', '.') }}
+                    @else
+                      Tanpa biaya tambahan
+                    @endif
+                  </small>
+                </span>
+                <span class="duitku-method-arrow">›</span>
+              </button>
+            @endforeach
+          </div>
+        </form>
+        <p class="duitku-secure-note">🔒 Pembayaran diproses dengan aman oleh Duitku.</p>
+      @else
+        <div style="background:#fef3c7;color:#92400e;border-radius:8px;padding:14px;font-size:13px">
+          Metode pembayaran Duitku belum dapat dimuat. Pastikan kredensial Sandbox dan channel pembayaran sudah aktif, lalu muat ulang halaman ini.
+        </div>
+      @endif
+
     @elseif($order->payment_gateway === 'midtrans')
       {{-- ── MIDTRANS SNAP ── --}}
       @if($snapToken)

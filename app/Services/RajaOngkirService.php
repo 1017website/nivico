@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Log;
 class RajaOngkirService
 {
     protected string $baseUrl;
+
     protected string $apiKey;
 
     public function __construct()
     {
         $this->baseUrl = rtrim(config('rajaongkir.base_url'), '/');
-        $this->apiKey  = (string) config('rajaongkir.api_key');
+        $this->apiKey = (string) config('rajaongkir.api_key');
     }
 
     public function isConfigured(): bool
@@ -32,7 +33,7 @@ class RajaOngkirService
     protected function client()
     {
         return Http::withHeaders([
-            'key'    => $this->apiKey,
+            'key' => $this->apiKey,
             'Accept' => 'application/json',
         ])->timeout(15);
     }
@@ -49,31 +50,40 @@ class RajaOngkirService
 
         // Sertakan hash API key di cache-key agar pergantian key
         // otomatis menginvalidasi cache lama.
-        $cacheKey = 'ro_dest_'.substr(md5($this->apiKey), 0, 8).'_'.md5(strtolower($keyword));
+        $cacheKey = 'ro_dest_v2_'.substr(md5($this->apiKey), 0, 8).'_'.md5(strtolower($keyword));
 
         return Cache::remember($cacheKey, now()->addDay(), function () use ($keyword) {
             try {
                 $res = $this->client()->get($this->baseUrl.'/destination/domestic-destination', [
                     'search' => $keyword,
-                    'limit'  => 20,
+                    'limit' => 20,
                 ]);
 
                 if (! $res->successful()) {
                     Log::warning('RajaOngkir destination gagal', ['status' => $res->status()]);
+
                     return [];
                 }
 
                 $rows = $res->json('data') ?? [];
+
                 return collect($rows)->map(function ($r) {
                     $label = $r['label']
                         ?? trim(($r['subdistrict_name'] ?? '').', '.($r['district_name'] ?? '').', '.($r['city_name'] ?? '').', '.($r['province_name'] ?? ''), ', ');
+
                     return [
-                        'id'    => (string) ($r['id'] ?? ($r['subdistrict_id'] ?? $r['city_id'] ?? '')),
+                        'id' => (string) ($r['id'] ?? ($r['subdistrict_id'] ?? $r['city_id'] ?? '')),
                         'label' => $label,
+                        'province' => (string) ($r['province_name'] ?? ''),
+                        'city' => (string) ($r['city_name'] ?? ''),
+                        'district' => (string) ($r['district_name'] ?? ''),
+                        'subdistrict' => (string) ($r['subdistrict_name'] ?? ''),
+                        'postal_code' => (string) ($r['zip_code'] ?? ''),
                     ];
                 })->filter(fn ($r) => $r['id'])->values()->all();
             } catch (\Throwable $e) {
                 Log::error('RajaOngkir destination exception', ['msg' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -93,34 +103,89 @@ class RajaOngkirService
 
         try {
             $res = $this->client()->asForm()->post($this->baseUrl.'/calculate/domestic-cost', [
-                'origin'      => config('rajaongkir.origin'),
+                'origin' => config('rajaongkir.origin'),
                 'destination' => $destinationId,
-                'weight'      => $weightGram,
-                'courier'     => config('rajaongkir.couriers'),
+                'weight' => $weightGram,
+                'courier' => config('rajaongkir.couriers'),
             ]);
 
             if (! $res->successful()) {
                 Log::warning('RajaOngkir cost gagal', ['status' => $res->status(), 'body' => $res->body()]);
+
                 return [];
             }
 
             $rows = $res->json('data') ?? [];
+
             return collect($rows)->map(function ($r) {
                 return [
-                    'courier'     => strtolower($r['code'] ?? $r['courier'] ?? ''),
-                    'courier_name'=> $r['name'] ?? strtoupper($r['code'] ?? ''),
-                    'service'     => $r['service'] ?? '',
+                    'courier' => strtolower($r['code'] ?? $r['courier'] ?? ''),
+                    'courier_name' => $r['name'] ?? strtoupper($r['code'] ?? ''),
+                    'service' => $r['service'] ?? '',
                     'description' => $r['description'] ?? ($r['service'] ?? ''),
-                    'cost'        => (int) ($r['cost'] ?? $r['value'] ?? 0),
-                    'etd'         => $r['etd'] ?? '',
+                    'cost' => (int) ($r['cost'] ?? $r['value'] ?? 0),
+                    'etd' => $r['etd'] ?? '',
                 ];
             })->filter(fn ($r) => $r['cost'] > 0)
-              ->sortBy('cost')
-              ->values()->all();
+                ->reject(fn ($r) => $this->isUnsupportedRetailService($r))
+                ->sortBy('cost')
+                ->values()->all();
         } catch (\Throwable $e) {
             Log::error('RajaOngkir cost exception', ['msg' => $e->getMessage()]);
+
             return [];
         }
+    }
+
+    /**
+     * Sembunyikan layanan khusus dokumen, muatan besar, trucking,
+     * kargo, atau pengiriman kendaraan dari checkout barang retail.
+     */
+    protected function isUnsupportedRetailService(array $option): bool
+    {
+        $courier = strtolower((string) ($option['courier'] ?? ''));
+        $service = strtoupper(preg_replace('/\s+/', '', (string) ($option['service'] ?? '')));
+        $searchable = strtolower(implode(' ', [
+            (string) ($option['courier_name'] ?? ''),
+            (string) ($option['service'] ?? ''),
+            (string) ($option['description'] ?? ''),
+        ]));
+
+        $documentOnly = in_array($service, ['DOK', 'DOC', 'DOCUMENT'], true)
+            || (
+                (str_contains($searchable, 'document') || str_contains($searchable, 'dokumen'))
+                && ! str_contains($searchable, 'parcel')
+                && ! str_contains($searchable, 'paket')
+            );
+
+        if ($documentOnly) {
+            return true;
+        }
+
+        $excludedKeywords = [
+            'cargo',
+            'kargo',
+            'trucking',
+            'mini cargo',
+            'sepeda motor',
+            'motor di bawah',
+            'minimal 10kg',
+            'minimal 10 kg',
+        ];
+
+        if (collect($excludedKeywords)->contains(fn ($keyword) => str_contains($searchable, $keyword))) {
+            return true;
+        }
+
+        if (str_starts_with($service, 'JTR') || $service === 'TRC' || $service === 'GOKIL') {
+            return true;
+        }
+
+        if ($courier === 'anteraja' && $service === 'MC') {
+            return true;
+        }
+
+        return $courier === 'tiki' && in_array($service, ['T15', 'T25', 'T60'], true);
     }
 
     /**

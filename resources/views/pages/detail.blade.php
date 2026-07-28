@@ -112,7 +112,7 @@
 
       <div class="det-desc-box">
         <h3>Deskripsi Produk</h3>
-        <p>{{ $product->description }}</p>
+        <p>{!! nl2br(e($product->display_description)) !!}</p>
       </div>
     </div>
   </div>

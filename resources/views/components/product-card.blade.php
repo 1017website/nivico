@@ -21,6 +21,7 @@
     </div>
     <div class="pc-body">
         <div class="pc-name">{{ $product->name }}</div>
+        <p class="pc-desc">{{ \Illuminate\Support\Str::limit($product->display_description, 92) }}</p>
         <div class="pc-price">@if($product->has_variants && $product->hasPriceRange())Rp{{ number_format($product->min_price, 0, ',', '.') }} <span style="font-size:11px;color:var(--muted)">– Rp{{ number_format($product->max_price, 0, ',', '.') }}</span>@else Rp{{ number_format($product->min_price, 0, ',', '.') }}@if($product->old_price)<span class="pc-old">Rp{{ number_format($product->old_price, 0, ',', '.') }}</span>@endif @endif</div>
 
         @if($flash && !is_null($sold))

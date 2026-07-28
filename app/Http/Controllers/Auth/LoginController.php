@@ -17,7 +17,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $cred = $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
@@ -27,6 +27,7 @@ class LoginController extends Controller
 
             if (! $user->is_active) {
                 Auth::logout();
+
                 return back()->withErrors(['email' => 'Akun Anda dinonaktifkan.'])->onlyInput('email');
             }
 
@@ -35,7 +36,8 @@ class LoginController extends Controller
                 $this->log('login', 'Masuk ke panel admin', $user);
             }
 
-            $to = $user->isAdmin() ? route('admin.dashboard') : route('home');
+            $to = $user->isAdmin() ? route('admin.dashboard') : route('account.dashboard');
+
             return redirect()->intended($to)->with('toast', '✓ Login berhasil! Selamat datang kembali.');
         }
 
@@ -51,16 +53,17 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('home');
     }
 
     protected function log(string $action, string $desc, $user): void
     {
         ActivityLog::create([
-            'user_id'    => $user->id,
-            'user_name'  => $user->name,
-            'action'     => $action,
-            'description'=> $desc,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'action' => $action,
+            'description' => $desc,
             'ip_address' => request()->ip(),
             'user_agent' => substr((string) request()->userAgent(), 0, 255),
         ]);

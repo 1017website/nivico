@@ -41,7 +41,7 @@
         <div class="fld full"><label>URL Gambar (atau upload di bawah)</label><input class="inp" type="text" name="image" value="{{ old('image', $product->image) }}" placeholder="https://..."></div>
         <div class="fld full"><label>Upload Gambar (opsional, menimpa URL)</label><input class="inp" type="file" name="image_file" accept="image/*"></div>
 
-        <div class="fld full"><label>Deskripsi</label><textarea class="inp" name="description" rows="4">{{ old('description', $product->description) }}</textarea></div>
+        <div class="fld full"><label>Deskripsi Produk <span style="color:var(--red)">*</span></label><textarea class="inp" name="description" rows="5" minlength="20" maxlength="5000" required placeholder="Jelaskan fungsi, spesifikasi utama, isi paket, dan penggunaan produk.">{{ old('description', $product->description) }}</textarea><small style="color:var(--muted)">Wajib diisi agar pelanggan dan penyedia pembayaran dapat memahami produk yang dijual.</small></div>
 
         <div class="fld"><label><input type="checkbox" name="is_flash_sale" value="1" @checked(old('is_flash_sale', $product->is_flash_sale))> Tampilkan di Flash Sale</label></div>
         <div class="fld"><label><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $product->exists ? $product->is_active : true))> Produk Aktif</label></div>

@@ -14,26 +14,30 @@ class OrderInvoiceMail extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * @param string $kind 'created' (pesanan dibuat) | 'paid' (pembayaran lunas)
+     * @param  string  $kind  'unpaid' (pesanan dibuat) | 'paid' (pembayaran lunas)
      */
-    public function __construct(public Order $order, public string $kind = 'created') {}
+    public function __construct(public Order $order, public string $kind = 'unpaid') {}
 
     public function envelope(): Envelope
     {
-        $prefix = $this->kind === 'paid' ? 'Pembayaran Diterima' : 'Invoice Pesanan';
+        $status = $this->kind === 'paid' ? 'PAID' : 'UNPAID';
 
         return new Envelope(
-            subject: $prefix.' #'.$this->order->order_number.' — NIVICO Electronic Mart',
+            subject: '['.$status.'] Invoice #'.$this->order->order_number.' — NIVICO Electronic Mart',
         );
     }
 
     public function content(): Content
     {
+        $this->order->loadMissing(['items', 'bankAccount']);
+
         return new Content(
             view: 'emails.order-invoice',
+            text: 'emails.order-invoice-text',
             with: [
                 'order' => $this->order,
-                'kind'  => $this->kind,
+                'kind' => $this->kind,
+                'isPaid' => $this->kind === 'paid',
             ],
         );
     }

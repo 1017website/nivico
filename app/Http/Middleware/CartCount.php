@@ -19,7 +19,7 @@ class CartCount
     {
         // Hindari membuat baris cart untuk konteks yang tidak butuh:
         // panel admin, webhook server-to-server, dan request non-HTML (AJAX/JSON).
-        $skip = $request->is('admin', 'admin/*', 'midtrans/*')
+        $skip = $request->is('admin', 'admin/*', 'midtrans/*', 'duitku/*')
             || $request->expectsJson()
             || $request->ajax();
 

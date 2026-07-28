@@ -22,7 +22,7 @@ class TrackVisit
 
         // hanya catat GET halaman HTML sisi toko
         $skip = $request->isMethod('GET') === false
-            || $request->is('admin', 'admin/*', 'midtrans/*', 'login', 'register', 'logout')
+            || $request->is('admin', 'admin/*', 'midtrans/*', 'duitku/*', 'login', 'register', 'logout')
             || $request->expectsJson()
             || $request->ajax();
 
@@ -41,14 +41,14 @@ class TrackVisit
             $info = $this->parseUserAgent($ua);
 
             PageVisit::create([
-                'url'          => substr($request->path(), 0, 512),
-                'device'       => $info['device'],
-                'browser'      => $info['browser'],
-                'platform'     => $info['platform'],
-                'referrer'     => $this->refererHost($request),
+                'url' => substr($request->path(), 0, 512),
+                'device' => $info['device'],
+                'browser' => $info['browser'],
+                'platform' => $info['platform'],
+                'referrer' => $this->refererHost($request),
                 'visitor_hash' => hash('sha256', $request->ip().'|'.$ua),
-                'session_id'   => substr(Session::getId(), 0, 64),
-                'is_bot'       => $info['is_bot'],
+                'session_id' => substr(Session::getId(), 0, 64),
+                'is_bot' => $info['is_bot'],
             ]);
         } catch (\Throwable $e) {
             // jangan ganggu request bila tracking gagal
@@ -72,6 +72,7 @@ class TrackVisit
         if ($host === $request->getHost()) {
             return null;
         }
+
         return substr($host, 0, 255);
     }
 
@@ -92,26 +93,39 @@ class TrackVisit
 
         // platform
         $platform = 'Lainnya';
-        if (str_contains($u, 'windows'))      $platform = 'Windows';
-        elseif (str_contains($u, 'android'))  $platform = 'Android';
-        elseif (preg_match('/iphone|ipad|ipod/', $u)) $platform = 'iOS';
-        elseif (str_contains($u, 'mac os'))   $platform = 'macOS';
-        elseif (str_contains($u, 'linux'))    $platform = 'Linux';
+        if (str_contains($u, 'windows')) {
+            $platform = 'Windows';
+        } elseif (str_contains($u, 'android')) {
+            $platform = 'Android';
+        } elseif (preg_match('/iphone|ipad|ipod/', $u)) {
+            $platform = 'iOS';
+        } elseif (str_contains($u, 'mac os')) {
+            $platform = 'macOS';
+        } elseif (str_contains($u, 'linux')) {
+            $platform = 'Linux';
+        }
 
         // browser (urutan penting: cek yang lebih spesifik dulu)
         $browser = 'Lainnya';
-        if (str_contains($u, 'edg/'))                       $browser = 'Edge';
-        elseif (str_contains($u, 'opr/') || str_contains($u, 'opera')) $browser = 'Opera';
-        elseif (str_contains($u, 'samsungbrowser'))         $browser = 'Samsung Internet';
-        elseif (str_contains($u, 'chrome') && ! str_contains($u, 'edg/')) $browser = 'Chrome';
-        elseif (str_contains($u, 'firefox'))                $browser = 'Firefox';
-        elseif (str_contains($u, 'safari') && ! str_contains($u, 'chrome')) $browser = 'Safari';
+        if (str_contains($u, 'edg/')) {
+            $browser = 'Edge';
+        } elseif (str_contains($u, 'opr/') || str_contains($u, 'opera')) {
+            $browser = 'Opera';
+        } elseif (str_contains($u, 'samsungbrowser')) {
+            $browser = 'Samsung Internet';
+        } elseif (str_contains($u, 'chrome') && ! str_contains($u, 'edg/')) {
+            $browser = 'Chrome';
+        } elseif (str_contains($u, 'firefox')) {
+            $browser = 'Firefox';
+        } elseif (str_contains($u, 'safari') && ! str_contains($u, 'chrome')) {
+            $browser = 'Safari';
+        }
 
         return [
-            'device'   => $device,
-            'browser'  => $browser,
+            'device' => $device,
+            'browser' => $browser,
             'platform' => $platform,
-            'is_bot'   => (bool) $isBot,
+            'is_bot' => (bool) $isBot,
         ];
     }
 }
