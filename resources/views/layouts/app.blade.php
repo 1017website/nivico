@@ -23,9 +23,13 @@
   @if($seo->og_image)<meta property="og:image" content="{{ $seo->og_image }}">@endif
   <meta property="og:type" content="website">
 @endif
+@php
+  $appCssVersion = file_exists(public_path('css/app.css')) ? filemtime(public_path('css/app.css')) : '1';
+  $responsiveCssVersion = file_exists(public_path('css/responsive.css')) ? filemtime(public_path('css/responsive.css')) : '1';
+@endphp
 <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
-<link rel="stylesheet" href="{{ asset('css/app.css') }}">
-<link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
+<link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ $appCssVersion }}">
+<link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ $responsiveCssVersion }}">
 <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 @stack('styles')
 </head>
