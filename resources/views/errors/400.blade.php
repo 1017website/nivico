@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Permintaan Tidak Dapat Diproses')
+@section('code', '400')
+@section('heading', 'Permintaan tidak dapat diproses')
+@section('message', 'Ada bagian dari permintaan yang tidak dapat kami pahami. Silakan kembali dan periksa kembali informasi yang dikirim.')

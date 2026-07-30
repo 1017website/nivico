@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Akses Tidak Tersedia')
+@section('code', '403')
+@section('heading', 'Akses ke halaman ini tidak tersedia')
+@section('message', 'Akun Anda tidak memiliki izin untuk membuka halaman tersebut. Jika Anda merasa ini keliru, silakan hubungi administrator.')

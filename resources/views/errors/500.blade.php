@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Terjadi Gangguan')
+@section('code', '500')
+@section('heading', 'Kami sedang menangani gangguan')
+@section('message', 'Layanan belum dapat menyelesaikan permintaan Anda. Tim kami telah mencatatnya—silakan coba kembali beberapa saat lagi.')

@@ -60,26 +60,6 @@
           </div>
         </div>
 
-        <div class="co-card"><h3>💳 Metode Pembayaran</h3>
-          <div class="radio-grp">
-            @if($midtransOn)
-            <label class="radio-opt"><input type="radio" name="payment_gateway" value="midtrans" {{ old('payment_gateway', 'midtrans')==='midtrans' ? 'checked' : '' }}><span class="ro-ico">⚡</span><div class="ro-inf"><strong>Pembayaran Otomatis (Midtrans)</strong><span>QRIS, GoPay, kartu, dan Virtual Account bank</span></div><span class="sandbox-badge">PRODUCTION</span></label>
-            @endif
-            <label class="radio-opt"><input type="radio" name="payment_gateway" value="manual_transfer" {{ old('payment_gateway', $midtransOn ? 'midtrans' : 'manual_transfer')==='manual_transfer' ? 'checked' : '' }}><span class="ro-ico">🏦</span><div class="ro-inf"><strong>Transfer Bank Manual</strong><span>Transfer lalu unggah bukti</span></div></label>
-          </div>
-
-          <div id="bank-picker" style="margin-top:12px">
-            <label style="font-size:12px;font-weight:600;color:var(--muted)">Pilih Bank Tujuan</label>
-            <div class="radio-grp" style="margin-top:6px">
-              @forelse($banks as $i => $bank)
-                <label class="radio-opt"><input type="radio" name="bank_account_id" value="{{ $bank->id }}" {{ $i===0 ? 'checked' : '' }}><span class="ro-ico">🏦</span><div class="ro-inf"><strong>{{ $bank->bank_name }}</strong><span>{{ $bank->account_number }} — a.n. {{ $bank->account_holder }}</span></div></label>
-              @empty
-                <div style="font-size:12.5px;color:var(--muted)">Belum ada rekening bank. Admin dapat menambahkannya di panel admin.</div>
-              @endforelse
-            </div>
-          </div>
-        </div>
-
         <div class="co-card"><h3>📝 Catatan Penjual</h3><div class="fg"><textarea name="note" placeholder="Catatan tambahan untuk penjual (opsional)...">{{ old('note') }}</textarea></div></div>
       </div>
 
@@ -116,8 +96,8 @@
           </div>
 
           <div class="sum-row tot"><span>Total Bayar</span><span id="sum-total">Rp{{ number_format($subtotal - $discount, 0, ',', '.') }}</span></div>
-          <button class="btn-bayar" type="submit" id="btn-checkout">🔒 Buat Pesanan</button>
-          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">Dengan menekan tombol, Anda menyetujui Syarat &amp; Ketentuan NIVICO</p>
+          <button class="btn-bayar" type="submit" id="btn-checkout">Buat Pesanan</button>
+          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran yang aman.</p>
         </div>
       </div>
     </div>
@@ -544,15 +524,6 @@
     promoRemove.disabled=busy;
     promoApply.textContent=busy ? 'Memeriksa...' : 'Pakai';
   }
-
-  // ── toggle bank picker sesuai gateway ──
-  const bankPicker = document.getElementById('bank-picker');
-  function toggleBank(){
-    const gw = document.querySelector('input[name=payment_gateway]:checked');
-    bankPicker.style.display = (gw && gw.value==='manual_transfer') ? 'block' : 'none';
-  }
-  document.querySelectorAll('input[name=payment_gateway]').forEach(r=>r.addEventListener('change',toggleBank));
-  toggleBank();
 
   // ── validasi sebelum submit ──
   document.getElementById('checkout-form').addEventListener('submit', function(e){

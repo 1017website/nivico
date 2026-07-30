@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Silakan Masuk')
+@section('code', '401')
+@section('heading', 'Silakan masuk terlebih dahulu')
+@section('message', 'Halaman ini hanya dapat dibuka setelah Anda masuk ke akun NIVICO.')

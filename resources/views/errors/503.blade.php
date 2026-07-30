@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Pemeliharaan Layanan')
+@section('code', '503')
+@section('heading', 'Kami segera kembali')
+@section('message', 'NIVICO sedang menjalani pemeliharaan singkat agar layanan tetap optimal. Terima kasih atas kesabaran Anda.')

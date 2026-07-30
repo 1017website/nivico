@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BankAccount;
 use App\Models\Order;
 use App\Services\CartService;
 use App\Services\InvoiceMailService;
@@ -30,10 +29,7 @@ class CheckoutController extends Controller
         $weight = $this->orders->cartWeight($summary['cart']);
         $useApi = $this->rajaongkir->isConfigured();
         $fallbackShip = $this->rajaongkir->fallbackOptions();
-        $banks = BankAccount::active()->orderBy('sort_order')->get();
-        $midtransOn = app(MidtransService::class)->isConfigured();
-
-        return view('pages.checkout', $summary + compact('weight', 'useApi', 'fallbackShip', 'banks', 'midtransOn'));
+        return view('pages.checkout', $summary + compact('weight', 'useApi', 'fallbackShip'));
     }
 
     /** AJAX: cari kota/kecamatan tujuan. */
@@ -78,15 +74,11 @@ class CheckoutController extends Controller
             // shipping dikirim sebagai "courier|service|cost|etd|description"
             'shipping_option' => 'required|string',
 
-            // payment
-            'payment_gateway' => 'required|in:manual_transfer,midtrans',
-            'bank_account_id' => 'required_if:payment_gateway,manual_transfer|nullable|exists:bank_accounts,id',
         ]);
 
-        if ($data['payment_gateway'] === 'midtrans'
-            && ! app(MidtransService::class)->isConfigured()) {
+        if (! app(MidtransService::class)->isConfigured()) {
             throw ValidationException::withMessages([
-                'payment_gateway' => 'Pembayaran Midtrans sedang tidak tersedia. Silakan pilih transfer bank manual.',
+                'payment' => 'Pembayaran sedang tidak tersedia. Silakan coba kembali beberapa saat lagi.',
             ]);
         }
 
@@ -101,10 +93,8 @@ class CheckoutController extends Controller
         $data['shipping_service'] = $service;
         $data['shipping_etd'] = $etd;
         $data['shipping_cost'] = $cost;
-        $data['payment_method'] = match ($data['payment_gateway']) {
-            'midtrans' => 'midtrans',
-            default => 'transfer',
-        };
+        $data['payment_gateway'] = 'midtrans';
+        $data['payment_method'] = 'midtrans';
         $data['user_id'] = auth()->id();
         $data['phone'] = Order::normalizePhone($data['phone']) ?? $data['phone'];
         if (isset($data['destination_id'])) {

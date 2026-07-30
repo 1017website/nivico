@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Layanan Sedang Terhubung Ulang')
+@section('code', '502')
+@section('heading', 'Layanan sedang terhubung ulang')
+@section('message', 'Salah satu layanan pendukung belum memberikan respons yang sesuai. Silakan coba kembali dalam beberapa saat.')

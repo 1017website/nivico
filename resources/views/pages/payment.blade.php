@@ -77,7 +77,7 @@
         });
         </script>
         @endpush
-        <p class="duitku-secure-note">🔒 Pembayaran production diproses dengan aman oleh Midtrans.</p>
+        <p class="duitku-secure-note">Pembayaran diproses dengan aman oleh Midtrans.</p>
       @else
         <div style="background:#fef3c7;color:#92400e;border-radius:8px;padding:14px;font-size:13px">
           Pembayaran Midtrans sedang tidak tersedia. Silakan hubungi admin atau gunakan transfer bank manual.

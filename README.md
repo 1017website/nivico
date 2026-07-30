@@ -24,7 +24,7 @@ Aplikasi e-commerce toko elektronik (kabel, microphone, adaptor, baterai, tools,
 - Scheduler melepas order `pending` kedaluwarsa (24 jam) & mengembalikan stok (`php artisan schedule:run`)
 - Promo: tipe potongan tetap / persen (dengan cap) / gratis ongkir, validasi minimal belanja
 - **Ongkir real-time** via RajaOngkir/Komerce (cari kota/kecamatan + hitung tarif per kurir, fallback ke tarif statis bila API belum diisi)
-- **Pembayaran**: Midtrans Snap Production (QRIS, GoPay, kartu, Virtual Account) + transfer bank manual
+- **Pembayaran checkout baru**: seluruh transaksi diarahkan ke Midtrans Snap (QRIS, GoPay, kartu, Virtual Account)
 - Webhook Midtrans dengan verifikasi signature SHA-512, Merchant ID, nominal pembayaran, pembaruan idempoten, dan restock otomatis bila expired/failed
 - Callback Duitku lama tetap tersedia sementara untuk menuntaskan transaksi sebelum migrasi
 
@@ -94,7 +94,7 @@ DUITKU_EXPIRY_PERIOD=60
 ```
 
 - Jika **RajaOngkir kosong**, checkout otomatis memakai tarif statis (JNE/SiCepat/J&T) sebagai fallback.
-- Jika **Midtrans kosong** atau Production Key tidak cocok, opsi pembayaran otomatis disembunyikan; transfer bank manual tetap berfungsi.
+- Jika **Midtrans kosong** atau Production Key tidak cocok, pembuatan pesanan baru ditolak agar tidak menghasilkan pesanan yang tidak dapat dibayar.
 - Set **Payment Notification URL** di dashboard Midtrans Production ke: `https://domain-anda.com/midtrans/notify`
 - Set **Finish Redirect URL** di dashboard Midtrans Production ke: `https://domain-anda.com/midtrans/finish`
 - Kredensial Duitku hanya dipertahankan untuk callback transaksi lama dan tidak lagi ditawarkan pada checkout baru.

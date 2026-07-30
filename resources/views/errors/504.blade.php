@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Respons Membutuhkan Waktu')
+@section('code', '504')
+@section('heading', 'Layanan membutuhkan waktu lebih lama')
+@section('message', 'Server belum menyelesaikan permintaan tepat waktu. Silakan tunggu sejenak lalu coba kembali.')

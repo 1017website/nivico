@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'Waktu Permintaan Habis')
+@section('code', '408')
+@section('heading', 'Permintaan membutuhkan waktu terlalu lama')
+@section('message', 'Koneksi terputus sebelum proses selesai. Silakan periksa jaringan Anda lalu coba kembali.')
