@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
 <title>@yield('title', 'Admin') — NIVICO</title>
 <link rel="stylesheet" href="{{ asset('vendor/fonts/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
@@ -37,6 +41,10 @@ a{text-decoration:none;color:inherit}
 .sb-nav a .ico{width:20px;text-align:center;font-size:15px;flex-shrink:0;color:inherit}
 .sb-nav a:hover .ico{color:var(--navy)}
 .sb-nav a.on .ico{color:#fff}
+.sb-nav a .menu-label{flex:1;min-width:0}
+.nav-count{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;line-height:1}
+.nav-count.is-hidden,.notice-count.is-hidden{display:none}
+.sb-nav a.on .nav-count{background:#fff;color:var(--navy)}
 .sb-foot{padding:14px 16px;border-top:1px solid var(--border)}
 .sb-foot button{display:flex;align-items:center;gap:10px;background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;padding:6px;font-weight:500;transition:color .15s}
 .sb-foot button:hover{color:var(--red)}
@@ -47,6 +55,9 @@ a{text-decoration:none;color:inherit}
 .tb h1{font-size:19px;font-weight:800;letter-spacing:-.4px}
 .tb-r{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--muted)}
 .tb-r .viewsite{color:var(--navy);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.notice-link{position:relative;width:38px;height:38px;border:1px solid var(--border);border-radius:11px;background:#fff;color:#475569;display:inline-flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s}
+.notice-link:hover,.notice-link.has-notice{border-color:#c7d2fe;background:#eef2ff;color:var(--navy)}
+.notice-count{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#dc2626;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;line-height:1;box-shadow:0 2px 5px rgba(220,38,38,.28)}
 .tb-r .who{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
 .tb-r .who .av{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 .sb-toggle{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);margin-right:6px}
@@ -161,7 +172,12 @@ tbody tr:hover td{background:#fafbff}
           @php $active = request()->routeIs(...($m['active'] ?? [str_replace('.index','',$m['route']).'*'])); @endphp
           <a href="{{ route($m['route']) }}" class="{{ $active ? 'on' : '' }}">
             <span class="ico"><i class="{{ $m['icon'] ?? 'fa-solid fa-circle' }}"></i></span>
-            <span>{{ $m['label'] }}</span>
+            <span class="menu-label">{{ $m['label'] }}</span>
+            @if(($m['route'] ?? '') === 'admin.orders.index')
+              <span id="orderNavCount"
+                    class="nav-count {{ ($adminOrderNoticeCount ?? 0) > 0 ? '' : 'is-hidden' }}"
+                    aria-label="{{ $adminOrderNoticeCount }} pesanan perlu dilihat">{{ $adminOrderNoticeCount > 99 ? '99+' : $adminOrderNoticeCount }}</span>
+            @endif
           </a>
         @endforeach
       @endforeach
@@ -181,6 +197,15 @@ tbody tr:hover td{background:#fafbff}
       </div>
       <div class="tb-r">
         <a class="viewsite" href="{{ route('home') }}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Lihat Toko</span></a>
+        @if(auth()->user()->hasPermission('orders.manage'))
+          <a id="orderNoticeLink" class="notice-link {{ ($adminOrderNoticeCount ?? 0) > 0 ? 'has-notice' : '' }}"
+             href="{{ route('admin.orders.index', ['attention' => 1]) }}"
+             title="{{ ($adminOrderNoticeCount ?? 0) > 0 ? $adminOrderNoticeCount.' pesanan perlu dilihat' : 'Tidak ada notifikasi pesanan baru' }}"
+             aria-label="{{ ($adminOrderNoticeCount ?? 0) > 0 ? $adminOrderNoticeCount.' pesanan perlu dilihat' : 'Notifikasi pesanan' }}">
+            <i id="orderNoticeIcon" class="fa-{{ ($adminOrderNoticeCount ?? 0) > 0 ? 'solid' : 'regular' }} fa-bell"></i>
+            <span id="orderTopCount" class="notice-count {{ ($adminOrderNoticeCount ?? 0) > 0 ? '' : 'is-hidden' }}">{{ $adminOrderNoticeCount > 99 ? '99+' : $adminOrderNoticeCount }}</span>
+          </a>
+        @endif
         <span class="who"><span class="av">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</span><span>{{ auth()->user()->name }}</span></span>
       </div>
     </div>
@@ -198,6 +223,46 @@ function confirmDelete(f){return confirm('Yakin ingin menghapus data ini?');}
 @if(session('toast'))document.addEventListener('DOMContentLoaded',function(){toast(@json(session('toast')))});@endif
 @if(session('error'))document.addEventListener('DOMContentLoaded',function(){toast(@json('✗ '.session('error')))});@endif
 @if($errors->any())document.addEventListener('DOMContentLoaded',function(){toast(@json('✗ '.$errors->first()))});@endif
+@if(auth()->user()->hasPermission('orders.manage'))
+(function(){
+  var currentOrderNotices={{ (int) ($adminOrderNoticeCount ?? 0) }};
+  var notificationUrl=@json(route('admin.orders.notifications'));
+  function renderOrderNotices(count){
+    var label=count>99?'99+':String(count);
+    var nav=document.getElementById('orderNavCount');
+    var top=document.getElementById('orderTopCount');
+    var link=document.getElementById('orderNoticeLink');
+    var icon=document.getElementById('orderNoticeIcon');
+    [nav,top].forEach(function(el){
+      if(!el)return;
+      el.textContent=label;
+      el.classList.toggle('is-hidden',count===0);
+    });
+    if(link){
+      link.classList.toggle('has-notice',count>0);
+      link.title=count>0?count+' pesanan perlu dilihat':'Tidak ada notifikasi pesanan baru';
+      link.setAttribute('aria-label',link.title);
+    }
+    if(icon)icon.className=(count>0?'fa-solid':'fa-regular')+' fa-bell';
+  }
+  async function refreshOrderNotices(){
+    if(document.hidden)return;
+    try{
+      var response=await fetch(notificationUrl,{headers:{Accept:'application/json','X-Requested-With':'XMLHttpRequest'}});
+      if(!response.ok)return;
+      var data=await response.json();
+      var nextCount=Math.max(0,Number(data.count)||0);
+      if(nextCount>currentOrderNotices){
+        toast((nextCount-currentOrderNotices)+' pesanan atau pembayaran baru perlu dilihat');
+      }
+      currentOrderNotices=nextCount;
+      renderOrderNotices(nextCount);
+    }catch(error){}
+  }
+  setInterval(refreshOrderNotices,30000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshOrderNotices();});
+})();
+@endif
 </script>
 @stack('scripts')
 </body>

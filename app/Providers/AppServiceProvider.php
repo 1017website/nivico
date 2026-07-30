@@ -3,10 +3,13 @@
 namespace App\Providers;
 
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\SeoSetting;
+use App\Models\SiteSetting;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Pagination memakai tema admin
-        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.admin');
+        Paginator::defaultView('vendor.pagination.admin');
 
         // Share kategori aktif ke layout toko (nav & footer)
         View::composer(['layouts.app', 'partials.*'], function ($view) {
@@ -33,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['layouts.app', 'layouts.admin', 'partials.*', 'pages.*'], function ($view) {
             $settings = [];
             if (Schema::hasTable('site_settings')) {
-                $settings = \App\Models\SiteSetting::allMap();
+                $settings = SiteSetting::allMap();
             }
             $view->with('site', $settings);
         });
@@ -49,9 +52,23 @@ class AppServiceProvider extends ServiceProvider
                 if (($m['super_only'] ?? false) && ! $user->isSuperAdmin()) {
                     return false;
                 }
+
                 return $user->hasPermission($m['permission']);
             });
-            $view->with('adminMenus', $menus);
+            $orderNoticeCount = 0;
+            if (
+                $user
+                && $user->hasPermission('orders.manage')
+                && Schema::hasTable('orders')
+                && Schema::hasColumn('orders', 'admin_seen_at')
+            ) {
+                $orderNoticeCount = Order::whereNull('admin_seen_at')->count();
+            }
+
+            $view->with([
+                'adminMenus' => $menus,
+                'adminOrderNoticeCount' => $orderNoticeCount,
+            ]);
         });
 
         // Share SEO global ke layout toko

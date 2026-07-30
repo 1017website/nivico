@@ -28,4 +28,22 @@ class ErrorPageTest extends TestCase
             $this->assertStringNotContainsString('Laravel', $html);
         }
     }
+
+    public function test_favicon_assets_exist_and_are_valid_images(): void
+    {
+        foreach ([
+            'favicon.png',
+            'favicon-32x32.png',
+            'favicon-16x16.png',
+            'apple-touch-icon.png',
+        ] as $filename) {
+            $path = public_path($filename);
+
+            $this->assertFileExists($path);
+            $this->assertNotFalse(getimagesize($path));
+        }
+
+        $this->assertFileExists(public_path('favicon.ico'));
+        $this->assertGreaterThan(0, filesize(public_path('favicon.ico')));
+    }
 }

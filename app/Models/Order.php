@@ -19,7 +19,7 @@ class Order extends Model
         'payment_method', 'payment_gateway', 'payment_status',
         'snap_token', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type',
         'duitku_reference', 'duitku_merchant_order_id', 'duitku_payment_url', 'duitku_payment_method', 'duitku_publisher_order_id',
-        'paid_at', 'bank_account_id', 'payment_proof',
+        'paid_at', 'admin_seen_at', 'admin_notice_type', 'bank_account_id', 'payment_proof',
         'subtotal', 'discount', 'promo_id', 'total', 'status', 'expires_at',
         'created_by', 'updated_by', 'deleted_by',
     ];
@@ -27,6 +27,7 @@ class Order extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'paid_at' => 'datetime',
+        'admin_seen_at' => 'datetime',
     ];
 
     public function items()
@@ -57,6 +58,18 @@ class Order extends Model
     public function isPaid(): bool
     {
         return $this->payment_status === 'paid';
+    }
+
+    public function needsAdminAttention(): bool
+    {
+        return $this->admin_seen_at === null;
+    }
+
+    public function adminAttentionLabel(): string
+    {
+        return $this->admin_notice_type === 'payment'
+            ? 'Pembayaran Baru'
+            : 'Pesanan Baru';
     }
 
     /**

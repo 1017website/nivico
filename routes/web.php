@@ -146,6 +146,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     Route::middleware('permission:orders.manage')->group(function () {
         Route::get('orders', [AdminOrder::class, 'index'])->name('orders.index');
+        Route::get('orders-notifications', [AdminOrder::class, 'notifications'])->name('orders.notifications');
         Route::get('orders/{order}', [AdminOrder::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [AdminOrder::class, 'updateStatus'])->name('orders.status');
         Route::patch('orders/{order}/verify', [AdminOrder::class, 'verifyPayment'])->name('orders.verify');

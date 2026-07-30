@@ -6,7 +6,10 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#172a88">
   <title>@yield('title') — NIVICO Electronic Mart</title>
-  <link rel="icon" href="{{ asset('favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+  <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
   <style>
     :root{--navy:#172a88;--navy-dark:#101d61;--blue:#2563eb;--text:#111827;--muted:#64748b;--line:#e2e8f0;--surface:#fff;--bg:#f4f6fb}
     *{box-sizing:border-box;margin:0;padding:0}
@@ -59,7 +62,7 @@
   <div class="error-page">
     <header class="error-header">
       <a class="brand" href="{{ url('/') }}" aria-label="NIVICO Electronic Mart">
-        <img class="brand-mark" src="{{ asset('favicon.ico') }}" alt="">
+        <img class="brand-mark" src="{{ asset('favicon.png') }}" alt="" onerror="this.hidden=true">
         <span class="brand-copy"><strong>NIVICO</strong><small>Electronic Mart</small></span>
       </a>
     </header>

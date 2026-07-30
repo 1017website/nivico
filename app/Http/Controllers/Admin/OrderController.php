@@ -18,17 +18,35 @@ class OrderController extends Controller
         if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
         }
+        if ($request->boolean('attention')) {
+            $query->whereNull('admin_seen_at');
+        }
         if ($request->filled('q')) {
-            $query->where('order_number', 'like', '%'.$request->q.'%')
-                ->orWhere('recipient_name', 'like', '%'.$request->q.'%');
+            $query->where(function ($query) use ($request) {
+                $query->where('order_number', 'like', '%'.$request->q.'%')
+                    ->orWhere('recipient_name', 'like', '%'.$request->q.'%');
+            });
         }
         $orders = $query->paginate(15)->withQueryString();
 
         return view('admin.orders.index', compact('orders'));
     }
 
+    public function notifications()
+    {
+        return response()->json([
+            'count' => Order::whereNull('admin_seen_at')->count(),
+        ]);
+    }
+
     public function show(Order $order)
     {
+        if ($order->needsAdminAttention()) {
+            Order::withoutTimestamps(function () use ($order) {
+                $order->forceFill(['admin_seen_at' => now()])->saveQuietly();
+            });
+        }
+
         $order->load('items', 'user', 'promo', 'bankAccount');
 
         return view('admin.orders.show', compact('order'));

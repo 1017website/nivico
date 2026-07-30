@@ -219,6 +219,10 @@ class PaymentController extends Controller
                 }
 
                 $statusChanged = $previousStatus !== $newStatus;
+                if ($statusChanged && $newStatus === 'paid') {
+                    $update['admin_seen_at'] = null;
+                    $update['admin_notice_type'] = 'payment';
+                }
                 $locked->update($update);
                 $sendPaidInvoice = $statusChanged && $newStatus === 'paid';
                 $restoreStock = $statusChanged
@@ -451,6 +455,10 @@ class PaymentController extends Controller
             }
 
             $changed = $previousStatus !== $newStatus;
+            if ($changed && $newStatus === 'paid') {
+                $update['admin_seen_at'] = null;
+                $update['admin_notice_type'] = 'payment';
+            }
             $order->update($update);
 
             if ($changed && $newStatus === 'paid') {
