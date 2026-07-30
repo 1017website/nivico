@@ -124,19 +124,26 @@
   </form>
 </div>
 
+@php
+  $checkoutPromoData = null;
+  if ($cart->promo) {
+      $checkoutPromoData = [
+          'code' => $cart->promo->code,
+          'title' => $cart->promo->title,
+          'type' => $cart->promo->type,
+          'value' => (int) $cart->promo->value,
+          'max_discount' => $cart->promo->max_discount ? (int) $cart->promo->max_discount : null,
+          'min_purchase' => (int) $cart->promo->min_purchase,
+      ];
+  }
+@endphp
+
 @push('scripts')
 <script>
 (function(){
   const SUBTOTAL = {{ $subtotal }};
   const csrf = document.querySelector('meta[name=csrf-token]').content;
-  let activePromo = @json($cart->promo ? [
-    'code' => $cart->promo->code,
-    'title' => $cart->promo->title,
-    'type' => $cart->promo->type,
-    'value' => (int) $cart->promo->value,
-    'max_discount' => $cart->promo->max_discount ? (int) $cart->promo->max_discount : null,
-    'min_purchase' => (int) $cart->promo->min_purchase,
-  ] : null);
+  let activePromo = @json($checkoutPromoData);
   const COURIER_LOGOS = {
     jne: @json(asset('images/couriers/jne.svg')),
     jnt: @json(asset('images/couriers/jnt.png')),
