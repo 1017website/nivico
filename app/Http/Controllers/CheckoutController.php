@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\BankAccount;
 use App\Models\Order;
 use App\Services\CartService;
-use App\Services\DuitkuService;
 use App\Services\InvoiceMailService;
 use App\Services\MidtransService;
 use App\Services\OrderService;
@@ -33,9 +32,8 @@ class CheckoutController extends Controller
         $fallbackShip = $this->rajaongkir->fallbackOptions();
         $banks = BankAccount::active()->orderBy('sort_order')->get();
         $midtransOn = app(MidtransService::class)->isConfigured();
-        $duitkuOn = app(DuitkuService::class)->isConfigured();
 
-        return view('pages.checkout', $summary + compact('weight', 'useApi', 'fallbackShip', 'banks', 'midtransOn', 'duitkuOn'));
+        return view('pages.checkout', $summary + compact('weight', 'useApi', 'fallbackShip', 'banks', 'midtransOn'));
     }
 
     /** AJAX: cari kota/kecamatan tujuan. */
@@ -81,9 +79,16 @@ class CheckoutController extends Controller
             'shipping_option' => 'required|string',
 
             // payment
-            'payment_gateway' => 'required|in:manual_transfer,midtrans,duitku',
+            'payment_gateway' => 'required|in:manual_transfer,midtrans',
             'bank_account_id' => 'required_if:payment_gateway,manual_transfer|nullable|exists:bank_accounts,id',
         ]);
+
+        if ($data['payment_gateway'] === 'midtrans'
+            && ! app(MidtransService::class)->isConfigured()) {
+            throw ValidationException::withMessages([
+                'payment_gateway' => 'Pembayaran Midtrans sedang tidak tersedia. Silakan pilih transfer bank manual.',
+            ]);
+        }
 
         $parts = explode('|', $data['shipping_option']);
         $courier = $parts[0] ?? '';
@@ -97,7 +102,6 @@ class CheckoutController extends Controller
         $data['shipping_etd'] = $etd;
         $data['shipping_cost'] = $cost;
         $data['payment_method'] = match ($data['payment_gateway']) {
-            'duitku' => 'duitku',
             'midtrans' => 'midtrans',
             default => 'transfer',
         };

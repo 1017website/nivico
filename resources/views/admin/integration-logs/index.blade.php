@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 @section('title', 'Log Integrasi')
-@section('heading', 'Log Email & Duitku')
+@section('heading', 'Log Integrasi')
 
 @section('content')
 <div class="cards trace-cards">
   <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-wave-square"></i></span>Trace Hari Ini</div><div class="val">{{ number_format($stats['today']) }}</div></div>
   <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-envelope"></i></span>Email</div><div class="val">{{ number_format($stats['emails']) }}</div></div>
-  <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-money-check-dollar"></i></span>Callback Duitku</div><div class="val">{{ number_format($stats['callbacks']) }}</div></div>
+  <div class="card"><div class="lbl"><span class="ci"><i class="fa-solid fa-money-check-dollar"></i></span>Callback Pembayaran</div><div class="val">{{ number_format($stats['callbacks']) }}</div></div>
   <div class="card"><div class="lbl"><span class="ci trace-ci-error"><i class="fa-solid fa-triangle-exclamation"></i></span>Perlu Diperiksa</div><div class="val">{{ number_format($stats['problems']) }}</div></div>
 </div>
 
@@ -14,7 +14,7 @@
   <div class="panel-hd">
     <div>
       <h2>Jejak Integrasi</h2>
-      <div class="sub">Status pengiriman invoice dan callback pembayaran Duitku yang diterima server.</div>
+      <div class="sub">Status pengiriman invoice dan notifikasi pembayaran Midtrans yang diterima server.</div>
     </div>
   </div>
   <form class="trace-filter" method="GET" action="{{ route('admin.integration-logs.index') }}">
@@ -22,7 +22,8 @@
     <select class="inp" name="channel">
       <option value="">Semua channel</option>
       <option value="email" @selected(request('channel') === 'email')>Email</option>
-      <option value="duitku" @selected(request('channel') === 'duitku')>Duitku</option>
+      <option value="midtrans" @selected(request('channel') === 'midtrans')>Midtrans</option>
+      <option value="duitku" @selected(request('channel') === 'duitku')>Duitku (legacy)</option>
     </select>
     <select class="inp" name="status">
       <option value="">Semua status</option>

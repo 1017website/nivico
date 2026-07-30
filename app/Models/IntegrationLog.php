@@ -26,6 +26,7 @@ class IntegrationLog extends Model
         return match ($this->channel) {
             'email' => 'Email',
             'duitku' => 'Duitku',
+            'midtrans' => 'Midtrans',
             default => ucfirst($this->channel),
         };
     }

@@ -6,6 +6,9 @@
 <div class="panel" style="max-width:760px">
   <div class="panel-hd"><h2>{{ $promo->exists ? 'Edit: '.$promo->code : 'Promo Baru' }}</h2><a class="btn btn-sm btn-gray" href="{{ route('admin.promos.index') }}">← Kembali</a></div>
   <div style="padding:24px">
+    <div style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;line-height:1.6">
+      Setelah promo disimpan dan aktif, pelanggan memasukkan <strong>Kode Promo</strong> pada ringkasan keranjang atau checkout. Sistem otomatis memeriksa minimum belanja, nilai/maksimum diskon, masa berlaku, dan status aktif.
+    </div>
     <form method="POST" action="{{ $promo->exists ? route('admin.promos.update', $promo) : route('admin.promos.store') }}">
       @csrf
       @if($promo->exists) @method('PUT') @endif

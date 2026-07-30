@@ -68,12 +68,38 @@ class CartController extends Controller
     {
         $request->validate(['code' => 'required|string']);
         $res = $this->cart->applyPromo($request->code);
+
+        if ($request->expectsJson()) {
+            $promo = $res['promo'] ?? null;
+
+            return response()->json([
+                'ok' => $res['ok'],
+                'message' => $res['message'],
+                'promo' => $promo ? [
+                    'code' => $promo->code,
+                    'title' => $promo->title,
+                    'type' => $promo->type,
+                    'value' => (int) $promo->value,
+                    'max_discount' => $promo->max_discount ? (int) $promo->max_discount : null,
+                    'min_purchase' => (int) $promo->min_purchase,
+                ] : null,
+            ], $res['ok'] ? 200 : 422);
+        }
+
         return back()->with($res['ok'] ? 'toast' : 'error', $res['message']);
     }
 
-    public function removePromo()
+    public function removePromo(Request $request)
     {
         $this->cart->removePromo();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Promo dihapus',
+            ]);
+        }
+
         return back();
     }
 }

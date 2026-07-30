@@ -224,7 +224,7 @@ input,select,textarea{font-family:inherit}
 /* ─────────────────────────────
    FOOTER
 ───────────────────────────── */
-.footer{background:#1e293b;margin-top:12px}
+.footer{background:#1e293b}
 .ft{max-width:1320px;margin:0 auto;padding:36px 24px 28px;display:grid;grid-template-columns:1.8fr 1fr 1fr 1.2fr;gap:32px}
 .ft-brand p{color:#94a3b8;font-size:12.5px;line-height:1.7;margin:12px 0 16px}
 .ft-soc{display:flex;gap:7px}
@@ -316,6 +316,14 @@ input,select,textarea{font-family:inherit}
 .promo-inp input:focus{border-color:var(--navy)}
 .promo-inp button{background:var(--navy);color:#fff;border:none;border-radius:5px;padding:0 16px;font-size:13px;font-weight:600;transition:background .15s}
 .promo-inp button:hover{background:var(--navy2)}
+.checkout-promo{border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);padding:12px 0;margin:12px 0}
+.checkout-promo-label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--text)}
+.checkout-promo .promo-inp{margin:8px 0 0}
+.checkout-promo-feedback{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;font-size:11.5px;color:var(--green);line-height:1.4}
+.checkout-promo-feedback[hidden]{display:none}
+.checkout-promo-remove{border:0;background:none;color:var(--red);font:inherit;font-size:11px;cursor:pointer;padding:2px}
+.checkout-promo-error{color:var(--red)}
+.sum-saving{color:var(--green)!important;font-weight:700}
 .btn-co{width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;margin-top:6px;transition:background .15s}
 .btn-co:hover{background:var(--navy2)}
 .empty-cart{text-align:center;padding:60px 20px;color:var(--muted)}
@@ -418,7 +426,8 @@ input,select,textarea{font-family:inherit}
 .p-card-body p{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:12px}
 .p-card-footer{display:flex;align-items:center;justify-content:space-between}
 .p-card-exp{font-size:11.5px;color:var(--muted)}
-.p-card-code{background:#eff6ff;color:var(--blue);font-size:12px;font-weight:700;padding:4px 12px;border-radius:4px;letter-spacing:.5px}
+.p-card-code{background:#eff6ff;color:var(--blue);font-size:12px;font-weight:700;padding:4px 12px;border:0;border-radius:4px;letter-spacing:.5px;cursor:pointer}
+.p-card-code:hover{background:#dbeafe}
 @media(max-width:768px){.promo-cards{grid-template-columns:1fr}.promo-hero{padding:28px 24px}.ph-left h1{font-size:26px}}
 
 /* ─────────────────────────────

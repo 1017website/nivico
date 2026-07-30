@@ -6,7 +6,7 @@
   <div class="promo-hero">
     <div class="ph-left">
       <h1>Promo &amp; Penawaran<br>Spesial Untukmu</h1>
-      <p>Nikmati berbagai diskon menarik, voucher, dan gratis ongkir untuk belanja elektronik kebutuhanmu setiap hari!</p>
+      <p>Salin kode promo yang diinginkan, lalu masukkan kodenya pada ringkasan keranjang atau checkout.</p>
       <a class="hero-cta" href="{{ route('products.index') }}" style="background:#fff;color:var(--navy)">Belanja Sekarang →</a>
     </div>
     <div class="ph-right">🎁</div>
@@ -37,7 +37,7 @@
           <p>{{ $promo->description }}</p>
           <div class="p-card-footer">
             <span class="p-card-exp">{{ $promo->expires_at ? 's/d '.$promo->expires_at->format('d M Y') : 'Tanpa batas waktu' }}</span>
-            <span class="p-card-code">{{ $promo->code }}</span>
+            <button class="p-card-code" type="button" data-promo-code="{{ $promo->code }}" onclick="event.stopPropagation();navigator.clipboard.writeText(this.dataset.promoCode);toast('✓ Kode '+this.dataset.promoCode+' disalin')">Salin {{ $promo->code }}</button>
           </div>
         </div>
       </div>

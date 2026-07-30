@@ -33,7 +33,7 @@ class IntegrationLogController extends Controller
         $stats = [
             'today' => IntegrationLog::where('created_at', '>=', $today)->count(),
             'emails' => IntegrationLog::where('channel', 'email')->where('created_at', '>=', $today)->count(),
-            'callbacks' => IntegrationLog::where('channel', 'duitku')->where('created_at', '>=', $today)->count(),
+            'callbacks' => IntegrationLog::whereIn('channel', ['midtrans', 'duitku'])->where('created_at', '>=', $today)->count(),
             'problems' => IntegrationLog::whereIn('status', ['failed', 'rejected'])
                 ->where('created_at', '>=', $today)
                 ->count(),

@@ -49,7 +49,7 @@ class Promo extends Model
 
         return match ($this->type) {
             'fixed'         => ['discount' => min($this->value, $subtotal), 'free_shipping' => false],
-            'percent'       => ['discount' => $this->capPercent($subtotal), 'free_shipping' => false],
+            'percent'       => ['discount' => min($this->capPercent($subtotal), $subtotal), 'free_shipping' => false],
             'free_shipping' => ['discount' => $shipping, 'free_shipping' => true],
             default         => ['discount' => 0, 'free_shipping' => false],
         };

@@ -62,13 +62,10 @@
 
         <div class="co-card"><h3>💳 Metode Pembayaran</h3>
           <div class="radio-grp">
-            @if($duitkuOn)
-            <label class="radio-opt"><input type="radio" name="payment_gateway" value="duitku" {{ old('payment_gateway', 'duitku')==='duitku' ? 'checked' : '' }}><span class="ro-ico">⚡</span><div class="ro-inf"><strong>Pembayaran Otomatis (Duitku)</strong><span>Virtual Account, QRIS, e-wallet, kartu, dan metode lainnya</span></div><span class="sandbox-badge">SANDBOX</span></label>
-            @endif
             @if($midtransOn)
-            <label class="radio-opt"><input type="radio" name="payment_gateway" value="midtrans" {{ old('payment_gateway')==='midtrans' ? 'checked' : '' }}><span class="ro-ico">⚡</span><div class="ro-inf"><strong>Pembayaran Otomatis (Midtrans)</strong><span>Kartu, e-wallet, VA bank, QRIS</span></div></label>
+            <label class="radio-opt"><input type="radio" name="payment_gateway" value="midtrans" {{ old('payment_gateway', 'midtrans')==='midtrans' ? 'checked' : '' }}><span class="ro-ico">⚡</span><div class="ro-inf"><strong>Pembayaran Otomatis (Midtrans)</strong><span>QRIS, GoPay, kartu, dan Virtual Account bank</span></div><span class="sandbox-badge">PRODUCTION</span></label>
             @endif
-            <label class="radio-opt"><input type="radio" name="payment_gateway" value="manual_transfer" {{ old('payment_gateway', $duitkuOn ? 'duitku' : 'manual_transfer')==='manual_transfer' ? 'checked' : '' }}><span class="ro-ico">🏦</span><div class="ro-inf"><strong>Transfer Bank Manual</strong><span>Transfer lalu unggah bukti</span></div></label>
+            <label class="radio-opt"><input type="radio" name="payment_gateway" value="manual_transfer" {{ old('payment_gateway', $midtransOn ? 'midtrans' : 'manual_transfer')==='manual_transfer' ? 'checked' : '' }}><span class="ro-ico">🏦</span><div class="ro-inf"><strong>Transfer Bank Manual</strong><span>Transfer lalu unggah bukti</span></div></label>
           </div>
 
           <div id="bank-picker" style="margin-top:12px">
@@ -101,7 +98,23 @@
           <div class="sum-row" style="margin-top:10px"><span>Subtotal</span><span>Rp{{ number_format($subtotal, 0, ',', '.') }}</span></div>
           <div class="sum-row"><span>Berat Total</span><span>{{ number_format($weight) }} gram</span></div>
           <div class="sum-row"><span>Ongkos Kirim</span><span id="sum-ship">—</span></div>
-          <div class="sum-row"><span>Diskon</span><span style="color:var(--green)">−Rp{{ number_format($discount, 0, ',', '.') }}</span></div>
+          <div class="sum-row"><span id="sum-discount-label">Diskon{{ $cart->promo ? ' ('.$cart->promo->code.')' : '' }}</span><span id="sum-discount" style="color:var(--green)">−Rp{{ number_format($discount, 0, ',', '.') }}</span></div>
+
+          <div class="checkout-promo">
+            <label class="checkout-promo-label" for="checkout-promo-code">
+              <span>🏷️ Punya kode promo?</span>
+              <a href="{{ route('promo') }}">Lihat promo</a>
+            </label>
+            <div class="promo-inp">
+              <input type="text" id="checkout-promo-code" placeholder="Masukkan kode promo" value="{{ optional($cart->promo)->code }}" autocomplete="off">
+              <button type="button" id="checkout-promo-apply">Pakai</button>
+            </div>
+            <div class="checkout-promo-feedback" id="checkout-promo-feedback" @if(!$cart->promo) hidden @endif>
+              <span id="checkout-promo-message">@if($cart->promo)✓ {{ $cart->promo->code }} aktif — {{ $cart->promo->title }}@endif</span>
+              <button class="checkout-promo-remove" type="button" id="checkout-promo-remove">Hapus</button>
+            </div>
+          </div>
+
           <div class="sum-row tot"><span>Total Bayar</span><span id="sum-total">Rp{{ number_format($subtotal - $discount, 0, ',', '.') }}</span></div>
           <button class="btn-bayar" type="submit" id="btn-checkout">🔒 Buat Pesanan</button>
           <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">Dengan menekan tombol, Anda menyetujui Syarat &amp; Ketentuan NIVICO</p>
@@ -115,8 +128,15 @@
 <script>
 (function(){
   const SUBTOTAL = {{ $subtotal }};
-  const DISCOUNT = {{ $discount }};
   const csrf = document.querySelector('meta[name=csrf-token]').content;
+  let activePromo = @json($cart->promo ? [
+    'code' => $cart->promo->code,
+    'title' => $cart->promo->title,
+    'type' => $cart->promo->type,
+    'value' => (int) $cart->promo->value,
+    'max_discount' => $cart->promo->max_discount ? (int) $cart->promo->max_discount : null,
+    'min_purchase' => (int) $cart->promo->min_purchase,
+  ] : null);
   const COURIER_LOGOS = {
     jne: @json(asset('images/couriers/jne.svg')),
     jnt: @json(asset('images/couriers/jnt.png')),
@@ -142,12 +162,57 @@
   const shipPlaceholder = document.getElementById('ship-placeholder');
   const shipLoading = document.getElementById('ship-loading');
   const sumShip = document.getElementById('sum-ship');
+  const sumDiscount = document.getElementById('sum-discount');
+  const sumDiscountLabel = document.getElementById('sum-discount-label');
   const sumTotal = document.getElementById('sum-total');
   const shipOption = document.getElementById('shipping_option');
+  const promoCode = document.getElementById('checkout-promo-code');
+  const promoApply = document.getElementById('checkout-promo-apply');
+  const promoFeedback = document.getElementById('checkout-promo-feedback');
+  const promoMessage = document.getElementById('checkout-promo-message');
+  const promoRemove = document.getElementById('checkout-promo-remove');
   let shippingOptions = [];
   let activeCourier = '';
+  let activeShippingCost = null;
 
   const rupiah = n => 'Rp' + Number(n).toLocaleString('id-ID');
+
+  function promoDiscount(shippingCost = 0){
+    if(!activePromo || SUBTOTAL < Number(activePromo.min_purchase || 0)) return 0;
+
+    if(activePromo.type === 'fixed'){
+      return Math.min(Number(activePromo.value || 0), SUBTOTAL);
+    }
+    if(activePromo.type === 'percent'){
+      let amount = Math.floor(SUBTOTAL * Number(activePromo.value || 0) / 100);
+      if(activePromo.max_discount) amount = Math.min(amount, Number(activePromo.max_discount));
+      return Math.min(amount, SUBTOTAL);
+    }
+    if(activePromo.type === 'free_shipping'){
+      return Number(shippingCost || 0);
+    }
+    return 0;
+  }
+
+  function updateSummary(){
+    const shipping = activeShippingCost === null ? 0 : Number(activeShippingCost);
+    const discount = promoDiscount(shipping);
+
+    sumDiscountLabel.textContent = activePromo ? `Diskon (${activePromo.code})` : 'Diskon';
+    sumDiscount.textContent = '−' + rupiah(discount);
+    sumTotal.textContent = rupiah(SUBTOTAL + shipping - discount);
+
+    if(activeShippingCost === null){
+      sumShip.textContent = '—';
+      sumShip.classList.remove('sum-saving');
+    }else if(activePromo?.type === 'free_shipping'){
+      sumShip.textContent = `GRATIS (hemat ${rupiah(shipping)})`;
+      sumShip.classList.add('sum-saving');
+    }else{
+      sumShip.textContent = rupiah(shipping);
+      sumShip.classList.remove('sum-saving');
+    }
+  }
 
   // ── cari tujuan ──
   let t;
@@ -235,8 +300,8 @@
     shipServiceStep.hidden=true;
     shipPlaceholder.style.display='block';
     shipPlaceholder.textContent='Pilih kecamatan atau kode pos di atas untuk melihat tarif pengiriman.';
-    sumShip.textContent='—';
-    sumTotal.textContent=rupiah(SUBTOTAL-DISCOUNT);
+    activeShippingCost=null;
+    updateSummary();
   }
 
   changeDestination.addEventListener('click', function(){
@@ -387,14 +452,90 @@
 
   function resetShippingChoice(){
     shipOption.value='';
-    sumShip.textContent='—';
-    sumTotal.textContent=rupiah(SUBTOTAL-DISCOUNT);
+    activeShippingCost=null;
+    updateSummary();
   }
 
   function applyShip(o){
     shipOption.value = [o.courier, o.service, o.cost, o.etd, o.description].join('|');
-    sumShip.textContent = rupiah(o.cost);
-    sumTotal.textContent = rupiah(SUBTOTAL - DISCOUNT + Number(o.cost));
+    activeShippingCost=Number(o.cost);
+    updateSummary();
+  }
+
+  // ── promo tanpa me-reset alamat dan pilihan pengiriman ──
+  promoApply.addEventListener('click', function(){
+    const code=promoCode.value.trim();
+    if(!code){
+      showPromoError('Masukkan kode promo terlebih dahulu.');
+      promoCode.focus();
+      return;
+    }
+
+    setPromoBusy(true);
+    fetch(@json(route('cart.promo')), {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRF-TOKEN':csrf,
+        'Accept':'application/json'
+      },
+      body:JSON.stringify({code})
+    }).then(async response=>{
+      const data=await response.json();
+      if(!response.ok) throw new Error(data.errors?.code?.[0] || data.message || 'Kode promo tidak dapat digunakan.');
+      return data;
+    }).then(data=>{
+      activePromo=data.promo;
+      promoCode.value=activePromo.code;
+      promoFeedback.hidden=false;
+      promoFeedback.classList.remove('checkout-promo-error');
+      promoMessage.textContent=`✓ ${activePromo.code} aktif — ${activePromo.title}`;
+      promoRemove.hidden=false;
+      updateSummary();
+      toast('✓ '+data.message);
+    }).catch(error=>{
+      showPromoError(error.message);
+    }).finally(()=>setPromoBusy(false));
+  });
+
+  promoRemove.addEventListener('click', function(){
+    setPromoBusy(true);
+    fetch(@json(route('cart.promo.remove')), {
+      method:'DELETE',
+      headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'}
+    }).then(async response=>{
+      const data=await response.json();
+      if(!response.ok) throw new Error(data.message || 'Promo tidak dapat dihapus.');
+      return data;
+    }).then(data=>{
+      activePromo=null;
+      promoCode.value='';
+      promoFeedback.hidden=true;
+      promoFeedback.classList.remove('checkout-promo-error');
+      updateSummary();
+      toast(data.message);
+    }).catch(error=>showPromoError(error.message))
+      .finally(()=>setPromoBusy(false));
+  });
+
+  promoCode.addEventListener('keydown', function(event){
+    if(event.key==='Enter'){
+      event.preventDefault();
+      promoApply.click();
+    }
+  });
+
+  function showPromoError(message){
+    promoFeedback.hidden=false;
+    promoFeedback.classList.add('checkout-promo-error');
+    promoMessage.textContent=message+(activePromo ? ` Promo ${activePromo.code} tetap aktif.` : '');
+    promoRemove.hidden=!activePromo;
+  }
+
+  function setPromoBusy(busy){
+    promoApply.disabled=busy;
+    promoRemove.disabled=busy;
+    promoApply.textContent=busy ? 'Memeriksa...' : 'Pakai';
   }
 
   // ── toggle bank picker sesuai gateway ──

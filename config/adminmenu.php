@@ -23,7 +23,7 @@ return [
     'seo'        => ['label' => 'Pengaturan SEO', 'icon' => 'fa-solid fa-magnifying-glass','route' => 'admin.seo.index',      'permission' => 'seo.manage',       'group' => 'Pengaturan'],
     'users'      => ['label' => 'Pengguna',       'icon' => 'fa-solid fa-users',          'route' => 'admin.users.index',     'permission' => 'users.manage',     'group' => 'Pengaturan'],
     'roles'      => ['label' => 'Hak Akses',      'icon' => 'fa-solid fa-user-shield',    'route' => 'admin.roles.index',     'permission' => 'roles.manage',     'group' => 'Pengaturan'],
-    'integration_logs' => ['label' => 'Log Email & Duitku', 'icon' => 'fa-solid fa-wave-square', 'route' => 'admin.integration-logs.index', 'permission' => 'activity.view', 'group' => 'Pengaturan', 'active' => ['admin.integration-logs.*']],
+    'integration_logs' => ['label' => 'Log Integrasi', 'icon' => 'fa-solid fa-wave-square', 'route' => 'admin.integration-logs.index', 'permission' => 'activity.view', 'group' => 'Pengaturan', 'active' => ['admin.integration-logs.*']],
     'activity'   => ['label' => 'Log Aktivitas',  'icon' => 'fa-solid fa-clock-rotate-left','route' => 'admin.activity.index', 'permission' => 'activity.view',    'group' => 'Pengaturan'],
     'system'     => ['label' => 'Sistem',         'icon' => 'fa-solid fa-screwdriver-wrench','route' => 'admin.system.index',  'permission' => 'settings.manage',  'group' => 'Pengaturan', 'super_only' => true],
 ];

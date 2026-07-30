@@ -62,7 +62,7 @@
     @elseif($order->payment_gateway === 'midtrans')
       {{-- ── MIDTRANS SNAP ── --}}
       @if($snapToken)
-        <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px">Klik tombol di bawah untuk menyelesaikan pembayaran melalui Midtrans (kartu, e-wallet, VA bank, QRIS, dan lainnya).</p>
+        <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px">Klik tombol di bawah untuk menyelesaikan pembayaran melalui Midtrans (QRIS, GoPay, kartu, dan Virtual Account bank).</p>
         <button class="btn-pay-now" id="pay-button">💳 Bayar Sekarang</button>
         @push('scripts')
         <script src="{{ config('midtrans.snap_url') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
@@ -77,9 +77,10 @@
         });
         </script>
         @endpush
+        <p class="duitku-secure-note">🔒 Pembayaran production diproses dengan aman oleh Midtrans.</p>
       @else
         <div style="background:#fef3c7;color:#92400e;border-radius:8px;padding:14px;font-size:13px">
-          Midtrans belum dikonfigurasi (Server/Client Key kosong). Isi kredensial di <code>.env</code> untuk mengaktifkan pembayaran otomatis.
+          Pembayaran Midtrans sedang tidak tersedia. Silakan hubungi admin atau gunakan transfer bank manual.
         </div>
       @endif
 

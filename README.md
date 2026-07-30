@@ -24,9 +24,9 @@ Aplikasi e-commerce toko elektronik (kabel, microphone, adaptor, baterai, tools,
 - Scheduler melepas order `pending` kedaluwarsa (24 jam) & mengembalikan stok (`php artisan schedule:run`)
 - Promo: tipe potongan tetap / persen (dengan cap) / gratis ongkir, validasi minimal belanja
 - **Ongkir real-time** via RajaOngkir/Komerce (cari kota/kecamatan + hitung tarif per kurir, fallback ke tarif statis bila API belum diisi)
-- **Pembayaran**: Duitku POP Sandbox dan Midtrans Snap (otomatis: kartu, e-wallet, VA, QRIS) + Transfer bank manual (upload bukti, verifikasi admin)
-- Callback Duitku dengan validasi HMAC SHA-256, pencocokan nominal, dan pembaruan status idempoten
-- Webhook Midtrans (verifikasi signature SHA-512, update status pembayaran, restock otomatis bila expired/failed)
+- **Pembayaran**: Midtrans Snap Production (QRIS, GoPay, kartu, Virtual Account) + transfer bank manual
+- Webhook Midtrans dengan verifikasi signature SHA-512, Merchant ID, nominal pembayaran, pembaruan idempoten, dan restock otomatis bila expired/failed
+- Callback Duitku lama tetap tersedia sementara untuk menuntaskan transaksi sebelum migrasi
 
 ## Persyaratan
 - PHP >= 8.2
@@ -69,7 +69,7 @@ php artisan serve
 
 Panel admin: `http://localhost:8000/admin`
 
-## Konfigurasi RajaOngkir, Duitku & Midtrans
+## Konfigurasi RajaOngkir & Midtrans
 
 Isi di `.env` (lihat `.env.example`):
 
@@ -80,12 +80,13 @@ RAJAONGKIR_ORIGIN=          # ID kota/kecamatan asal toko
 RAJAONGKIR_ORIGIN_TYPE=city # city | subdistrict
 RAJAONGKIR_COURIERS=jne:sicepat:jnt
 
-# Midtrans — dashboard.midtrans.com (pakai Sandbox dulu)
-MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxx
-MIDTRANS_SERVER_KEY=SB-Mid-server-xxxxx
-MIDTRANS_IS_PRODUCTION=false
+# Midtrans Production — dashboard.midtrans.com
+MIDTRANS_MERCHANT_ID=Gxxxxxxxx
+MIDTRANS_CLIENT_KEY=Mid-client-xxxxx
+MIDTRANS_SERVER_KEY=Mid-server-xxxxx
+MIDTRANS_IS_PRODUCTION=true
 
-# Duitku POP — gunakan project Sandbox saat proses verifikasi
+# Duitku legacy — isi hanya selama masih ada transaksi lama
 DUITKU_MERCHANT_CODE=Dxxxx
 DUITKU_API_KEY=xxxxxxxx
 DUITKU_IS_PRODUCTION=false
@@ -93,10 +94,10 @@ DUITKU_EXPIRY_PERIOD=60
 ```
 
 - Jika **RajaOngkir kosong**, checkout otomatis memakai tarif statis (JNE/SiCepat/J&T) sebagai fallback.
-- Jika **Midtrans kosong**, opsi pembayaran otomatis disembunyikan; transfer bank manual tetap berfungsi.
-- Set **URL notifikasi** di dashboard Midtrans ke: `https://domain-anda.com/midtrans/notify`
-- Jika **Duitku kosong**, opsi Duitku disembunyikan. Callback Sandbox: `https://domain-anda.com/duitku/callback`.
-- Return URL Duitku dibuat otomatis per pesanan dan dikirim saat pembuatan invoice.
+- Jika **Midtrans kosong** atau Production Key tidak cocok, opsi pembayaran otomatis disembunyikan; transfer bank manual tetap berfungsi.
+- Set **Payment Notification URL** di dashboard Midtrans Production ke: `https://domain-anda.com/midtrans/notify`
+- Set **Finish Redirect URL** di dashboard Midtrans Production ke: `https://domain-anda.com/midtrans/finish`
+- Kredensial Duitku hanya dipertahankan untuk callback transaksi lama dan tidak lagi ditawarkan pada checkout baru.
 - Akun testing pelanggan untuk verifikasi member area: `customer@nivico.id` / `password`.
 - Rekening bank untuk transfer manual dikelola di panel admin → **Rekening Bank**.
 

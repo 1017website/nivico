@@ -79,6 +79,7 @@ Route::get('/pesanan/{orderNumber}', [PaymentController::class, 'show'])->name('
 
 // Webhook Midtrans (tanpa CSRF — dikecualikan di bootstrap bila perlu)
 Route::post('/midtrans/notify', [PaymentController::class, 'midtransNotify'])->name('midtrans.notify')->withoutMiddleware([ValidateCsrfToken::class]);
+Route::get('/midtrans/finish', [PaymentController::class, 'midtransFinish'])->name('midtrans.finish');
 
 // Callback server-to-server dan return URL Duitku.
 Route::post('/duitku/callback', [PaymentController::class, 'duitkuCallback'])->name('duitku.callback')->withoutMiddleware([ValidateCsrfToken::class]);

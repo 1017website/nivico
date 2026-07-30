@@ -91,7 +91,9 @@ class OrderService
                 'shipping_service'=> $data['shipping_service'] ?? null,
                 'shipping_etd'    => $data['shipping_etd'] ?? null,
                 'shipping_weight' => $data['shipping_weight'] ?? $this->cartWeight($cart),
-                'shipping_cost'   => $summary['freeShip'] ? 0 : $summary['shipping'],
+                // Simpan ongkir asli. Promo gratis ongkir dicatat sebagai diskon
+                // sebesar ongkir agar subtotal + ongkir - diskon tetap konsisten.
+                'shipping_cost'   => $summary['shipping'],
                 'payment_method'  => $data['payment_method'],
                 'payment_gateway' => $data['payment_gateway'] ?? 'manual_transfer',
                 'payment_status'  => 'unpaid',
