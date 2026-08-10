@@ -47,8 +47,12 @@ Route::get('/produk/{product}', [ProductController::class, 'show'])->name('produ
 
 Route::get('/promo', [PromoController::class, 'index'])->name('promo');
 Route::get('/tentang', [PageController::class, 'about'])->name('about');
-Route::get('/kontak', [PageController::class, 'contact'])->name('contact');
-Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
+Route::middleware('auth')->group(function () {
+    Route::get('/kontak', [PageController::class, 'contact'])->name('contact');
+    Route::post('/kontak', [ContactController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('contact.store');
+});
 
 // Keranjang
 Route::prefix('keranjang')->name('cart.')->controller(CartController::class)->group(function () {
@@ -74,6 +78,9 @@ Route::post('/checkout/shipping', [CheckoutController::class, 'calculateShipping
 Route::get('/pembayaran/{orderNumber}', [PaymentController::class, 'show'])->name('payment.show');
 Route::post('/pembayaran/{orderNumber}/bukti', [PaymentController::class, 'uploadProof'])->name('payment.proof');
 Route::post('/pembayaran/{orderNumber}/duitku', [PaymentController::class, 'duitkuPay'])->name('payment.duitku');
+Route::post('/pembayaran/{orderNumber}/ganti-metode', [PaymentController::class, 'changeMethod'])
+    ->middleware('throttle:3,1')
+    ->name('payment.change-method');
 // alias agar finish-redirect Midtrans punya nama order.show
 Route::get('/pesanan/{orderNumber}', [PaymentController::class, 'show'])->name('order.show');
 
@@ -134,6 +141,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::get('flashsale', [FlashSaleController::class, 'index'])->name('flashsale.index');
         Route::post('flashsale/settings', [FlashSaleController::class, 'updateSettings'])->name('flashsale.settings');
         Route::patch('flashsale/{product}/toggle', [FlashSaleController::class, 'toggle'])->name('flashsale.toggle');
+        Route::patch('flashsale/bulk/update', [FlashSaleController::class, 'bulkUpdate'])->name('flashsale.bulk');
         Route::post('flashsale/clear', [FlashSaleController::class, 'clearAll'])->name('flashsale.clear');
     });
 
@@ -161,6 +169,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     Route::middleware('permission:messages.manage')->group(function () {
         Route::get('messages', [AdminMessage::class, 'index'])->name('messages.index');
+        Route::get('messages/{message}', [AdminMessage::class, 'show'])->name('messages.show');
         Route::patch('messages/{message}/read', [AdminMessage::class, 'read'])->name('messages.read');
         Route::delete('messages/{message}', [AdminMessage::class, 'destroy'])->name('messages.destroy');
     });

@@ -141,6 +141,14 @@ class DuitkuService
             ];
         }
 
+        if ($order->service_fee > 0) {
+            $items[] = [
+                'name' => 'Biaya Layanan',
+                'price' => (int) $order->service_fee,
+                'quantity' => 1,
+            ];
+        }
+
         $nameParts = preg_split('/\s+/', trim($order->recipient_name), 2) ?: [];
         $firstName = mb_substr($nameParts[0] ?? 'Pelanggan', 0, 50);
         $lastName = mb_substr($nameParts[1] ?? '', 0, 50);

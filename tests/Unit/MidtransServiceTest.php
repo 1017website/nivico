@@ -99,18 +99,7 @@ class MidtransServiceTest extends TestCase
             ]),
         ]);
 
-        $order = new class([
-            'order_number' => 'NVC-20260730-001',
-            'recipient_name' => 'Budi Pelanggan',
-            'phone' => '628123456789',
-            'email' => 'customer@nivico.id',
-            'address' => 'Jl. Contoh No. 1',
-            'city' => 'Surabaya',
-            'postal_code' => '60123',
-            'shipping_cost' => 10000,
-            'discount' => 5000,
-            'total' => 45000,
-        ]) extends Order
+        $order = new class(['order_number' => 'NVC-20260730-001', 'recipient_name' => 'Budi Pelanggan', 'phone' => '628123456789', 'email' => 'customer@nivico.id', 'address' => 'Jl. Contoh No. 1', 'city' => 'Surabaya', 'postal_code' => '60123', 'shipping_cost' => 10000, 'discount' => 5000, 'total' => 45000]) extends Order
         {
             public array $updatedAttributes = [];
 
@@ -150,5 +139,23 @@ class MidtransServiceTest extends TestCase
                 && $data['customer_details']['email'] === 'customer@nivico.id'
                 && str_ends_with($data['callbacks']['finish'], '/midtrans/finish');
         });
+    }
+
+    public function test_it_cancels_an_active_transaction_before_reissuing_payment_options(): void
+    {
+        config(['midtrans.api_base' => 'https://api.midtrans.com']);
+        Http::fake([
+            'https://api.midtrans.com/v2/*/cancel' => Http::response([
+                'status_code' => '200',
+                'transaction_status' => 'cancel',
+            ]),
+        ]);
+
+        $result = app(MidtransService::class)->cancelTransaction('NVC-20260730-001-260730120000-ABC123');
+
+        $this->assertTrue($result);
+        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+            && $request->url() === 'https://api.midtrans.com/v2/NVC-20260730-001-260730120000-ABC123/cancel'
+        );
     }
 }

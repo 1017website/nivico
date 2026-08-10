@@ -10,18 +10,30 @@ class MessageController extends Controller
     public function index()
     {
         $messages = ContactMessage::latest()->paginate(20);
+
         return view('admin.messages.index', compact('messages'));
+    }
+
+    public function show(ContactMessage $message)
+    {
+        if (! $message->is_read) {
+            $message->update(['is_read' => true]);
+        }
+
+        return view('admin.messages.show', compact('message'));
     }
 
     public function read(ContactMessage $message)
     {
         $message->update(['is_read' => true]);
+
         return back();
     }
 
     public function destroy(ContactMessage $message)
     {
         $message->delete();
-        return back()->with('toast', 'Pesan dihapus');
+
+        return redirect()->route('admin.messages.index')->with('toast', 'Pesan dihapus');
     }
 }

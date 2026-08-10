@@ -55,11 +55,19 @@
     </form>
   </div>
 
+  <form method="POST" action="{{ route('admin.flashsale.bulk') }}" id="flash-bulk-form">
+    @csrf @method('PATCH')
+    <div style="padding:12px 22px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--border)">
+      <span id="flash-selected-count" style="font-size:12.5px;color:var(--muted);margin-right:auto">0 produk dipilih</span>
+      <button class="btn btn-blue btn-sm" type="submit" name="action" value="add"><i class="fa-solid fa-bolt"></i> Masukkan Terpilih</button>
+      <button class="btn btn-gray btn-sm" type="submit" name="action" value="remove">Keluarkan Terpilih</button>
+    </div>
   <div class="table-wrap"><table>
-    <thead><tr><th></th><th>Produk</th><th>Harga</th><th>Stok</th><th>Flash Sale</th></tr></thead>
+    <thead><tr><th style="width:42px"><input type="checkbox" id="flash-select-all" aria-label="Pilih semua produk di halaman ini"></th><th></th><th>Produk</th><th>Harga</th><th>Stok</th><th>Flash Sale</th></tr></thead>
     <tbody>
       @forelse($products as $p)
         <tr>
+          <td><input class="flash-product-check" type="checkbox" name="product_ids[]" value="{{ $p->id }}" aria-label="Pilih {{ $p->name }}"></td>
           <td style="width:56px">
             <img class="thumb" src="{{ $p->image ?: asset('images/placeholder-product.svg') }}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">
           </td>
@@ -67,19 +75,20 @@
           <td>Rp{{ number_format($p->price,0,',','.') }}</td>
           <td><span class="chip {{ $p->stock < 10 ? 'low' : 'ok' }}">{{ $p->stock }}</span></td>
           <td>
-            <form method="POST" action="{{ route('admin.flashsale.toggle', $p) }}" style="display:inline">
-              @csrf @method('PATCH')
-              <button type="submit" class="toggle-sw {{ $p->is_flash_sale ? 'on' : '' }}" title="Klik untuk ubah">
-                <span class="toggle-knob"></span>
-              </button>
-            </form>
+            <button form="flash-toggle-{{ $p->id }}" type="submit" class="toggle-sw {{ $p->is_flash_sale ? 'on' : '' }}" title="Klik untuk ubah">
+              <span class="toggle-knob"></span>
+            </button>
           </td>
         </tr>
       @empty
-        <tr><td colspan="5" class="empty"><div class="ei">⚡</div>Belum ada produk. Tambahkan dengan menyalakan toggle.</td></tr>
+        <tr><td colspan="6" class="empty"><div class="ei">⚡</div>Belum ada produk. Tambahkan dengan menyalakan toggle.</td></tr>
       @endforelse
     </tbody>
   </table></div>
+  </form>
+  @foreach($products as $p)
+    <form id="flash-toggle-{{ $p->id }}" method="POST" action="{{ route('admin.flashsale.toggle', $p) }}" style="display:none">@csrf @method('PATCH')</form>
+  @endforeach
   @if($products->hasPages())<div class="pag">{{ $products->links() }}</div>@endif
 </div>
 
@@ -90,5 +99,28 @@
 .toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .toggle-sw.on .toggle-knob{transform:translateX(20px)}
 </style>
+@endpush
+@push('scripts')
+<script>
+(function(){
+  const all = document.getElementById('flash-select-all');
+  const checks = Array.from(document.querySelectorAll('.flash-product-check'));
+  const count = document.getElementById('flash-selected-count');
+  const form = document.getElementById('flash-bulk-form');
+  if (!all || !form) return;
+  function sync(){
+    const selected = checks.filter(c => c.checked).length;
+    count.textContent = selected + ' produk dipilih';
+    all.checked = checks.length > 0 && selected === checks.length;
+    all.indeterminate = selected > 0 && selected < checks.length;
+  }
+  all.addEventListener('change', () => { checks.forEach(c => c.checked = all.checked); sync(); });
+  checks.forEach(c => c.addEventListener('change', sync));
+  form.addEventListener('submit', function(e){
+    if (!checks.some(c => c.checked)) { e.preventDefault(); alert('Pilih minimal satu produk.'); }
+  });
+  sync();
+})();
+</script>
 @endpush
 @endsection

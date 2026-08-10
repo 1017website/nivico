@@ -29,7 +29,7 @@ class PaymentController extends Controller
 
         $snapToken = null;
         $duitkuMethods = [];
-        if ($order->payment_gateway === 'midtrans' && ! $order->isPaid()) {
+        if ($order->payment_gateway === 'midtrans' && ! $order->isPaid() && $order->status === 'pending') {
             $snapToken = $order->snap_token ?: $this->midtrans->createSnapToken($order->fresh('items'));
         } elseif ($order->payment_gateway === 'duitku' && ! $order->isPaid()) {
             $duitkuMethods = $this->duitku->getPaymentMethods((int) $order->total);
@@ -84,6 +84,45 @@ class PaymentController extends Controller
         return back()->with('toast', '✓ Bukti transfer terkirim. Menunggu verifikasi admin.');
     }
 
+    /** Batalkan transaksi Midtrans lama lalu terbitkan pilihan pembayaran baru. */
+    public function changeMethod(Request $request, string $orderNumber)
+    {
+        $order = Order::where('order_number', $orderNumber)->firstOrFail();
+        $this->authorizeAccess($request, $order);
+
+        if ($order->payment_gateway !== 'midtrans' || $order->isPaid() || $order->status !== 'pending') {
+            return back()->with('error', 'Metode pembayaran pesanan ini tidak dapat diganti.');
+        }
+
+        $old = $order->only([
+            'snap_token', 'midtrans_order_id', 'midtrans_transaction_id',
+            'midtrans_payment_type', 'payment_status',
+        ]);
+
+        if (empty($old['midtrans_order_id'])) {
+            return back()->with('error', 'Transaksi pembayaran aktif tidak ditemukan.');
+        }
+
+        // Lepaskan ID lama lebih dulu agar callback pembatalan tidak mengubah
+        // status pesanan atau mengembalikan stok yang masih dipesan pelanggan.
+        $order->update([
+            'snap_token' => null,
+            'midtrans_order_id' => null,
+            'midtrans_transaction_id' => null,
+            'midtrans_payment_type' => null,
+            'payment_status' => 'unpaid',
+        ]);
+
+        if (! $this->midtrans->cancelTransaction($old['midtrans_order_id'])) {
+            $order->update($old);
+
+            return back()->with('error', 'Pembayaran lama belum dapat dibatalkan. Coba beberapa saat lagi atau hubungi admin.');
+        }
+
+        return redirect()->route('payment.show', $order->order_number)
+            ->with('toast', '✓ Pembayaran lama dibatalkan. Silakan pilih metode pembayaran yang baru.');
+    }
+
     /** Webhook notifikasi Midtrans (server-to-server). */
     public function midtransNotify(Request $request)
     {
@@ -120,10 +159,32 @@ class PaymentController extends Controller
             $midtransOrderId = (string) ($payload['order_id'] ?? '');
             $order = Order::with('items')->where('midtrans_order_id', $midtransOrderId)->first();
 
-            // Kompatibilitas order Midtrans lama yang memakai suffix timestamp.
+            // Temukan order induk untuk callback transaksi lama/superseded.
             if (! $order && $midtransOrderId !== '') {
-                $orderNumber = preg_replace('/-\d+$/', '', $midtransOrderId);
-                $order = Order::with('items')->where('order_number', $orderNumber)->first();
+                if (preg_match('/^(.*)-\d{12}-[A-Z0-9]{6}$/i', $midtransOrderId, $matches)) {
+                    $order = Order::with('items')->where('order_number', $matches[1])->first();
+                } else {
+                    $orderNumber = preg_replace('/-\d+$/', '', $midtransOrderId);
+                    $order = Order::with('items')->where('order_number', $orderNumber)->first();
+                }
+            }
+
+            // Callback dari transaksi yang sudah diganti cukup diakui. Jangan
+            // biarkan status cancel transaksi lama membatalkan order aktif.
+            if ($order && $order->midtrans_order_id !== $midtransOrderId) {
+                $logger->finish($trace, 'ignored', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'reference' => $payload['transaction_id'] ?? null,
+                    'http_status' => 200,
+                    'message' => 'Notifikasi transaksi lama diabaikan setelah pelanggan mengganti metode pembayaran.',
+                    'context' => [
+                        'callback_order_id' => $midtransOrderId,
+                        'active_order_id' => $order->midtrans_order_id,
+                    ],
+                ]);
+
+                return response()->json(['message' => 'ok (superseded transaction)']);
             }
 
             if (! $order) {
@@ -281,9 +342,11 @@ class PaymentController extends Controller
             ? Order::where('midtrans_order_id', $midtransOrderId)->first()
             : null;
 
-        // Kompatibilitas transaksi lama yang memakai suffix timestamp.
+        // Kompatibilitas transaksi lama dan transaksi yang telah diganti.
         if (! $order && $midtransOrderId !== '') {
-            $orderNumber = preg_replace('/-\d+$/', '', $midtransOrderId);
+            $orderNumber = preg_match('/^(.*)-\d{12}-[A-Z0-9]{6}$/i', $midtransOrderId, $matches)
+                ? $matches[1]
+                : preg_replace('/-\d+$/', '', $midtransOrderId);
             $order = Order::where('order_number', $orderNumber)->first();
         }
 
@@ -291,6 +354,13 @@ class PaymentController extends Controller
             return redirect()->route('home')->with(
                 'error',
                 'Pesanan dari Midtrans tidak ditemukan. Silakan periksa menu pesanan Anda.'
+            );
+        }
+
+        if ($order->midtrans_order_id !== $midtransOrderId) {
+            return redirect()->route('payment.show', $order->order_number)->with(
+                'toast',
+                'Transaksi pembayaran lama sudah dibatalkan. Silakan lanjutkan dengan metode pembayaran aktif.'
             );
         }
 

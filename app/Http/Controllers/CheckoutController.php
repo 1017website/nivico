@@ -8,6 +8,7 @@ use App\Services\InvoiceMailService;
 use App\Services\MidtransService;
 use App\Services\OrderService;
 use App\Services\RajaOngkirService;
+use App\Services\ServiceFeeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,7 @@ class CheckoutController extends Controller
         protected CartService $cart,
         protected OrderService $orders,
         protected RajaOngkirService $rajaongkir,
+        protected ServiceFeeService $serviceFee,
     ) {}
 
     public function index()
@@ -29,7 +31,12 @@ class CheckoutController extends Controller
         $weight = $this->orders->cartWeight($summary['cart']);
         $useApi = $this->rajaongkir->isConfigured();
         $fallbackShip = $this->rajaongkir->fallbackOptions();
-        return view('pages.checkout', $summary + compact('weight', 'useApi', 'fallbackShip'));
+        $serviceFeeSettings = $this->serviceFee->settings();
+        $estimatedServiceFee = $this->serviceFee->calculate((int) $summary['total']);
+
+        return view('pages.checkout', $summary + compact(
+            'weight', 'useApi', 'fallbackShip', 'serviceFeeSettings', 'estimatedServiceFee'
+        ));
     }
 
     /** AJAX: cari kota/kecamatan tujuan. */

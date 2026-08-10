@@ -25,8 +25,8 @@ class FlashSaleController extends Controller
         $settings = [
             'enabled' => SiteSetting::get('flashsale.enabled', true),
             'ends_at' => SiteSetting::get('flashsale.ends_at', now()->addDay()->format('Y-m-d H:i')),
-            'label'   => SiteSetting::get('flashsale.label', 'Berakhir dalam:'),
-            'title'   => SiteSetting::get('section.flash_title', '⚡ Flash Sale'),
+            'label' => SiteSetting::get('flashsale.label', 'Berakhir dalam:'),
+            'title' => SiteSetting::get('section.flash_title', '⚡ Flash Sale'),
         ];
 
         return view('admin.flashsale.index', compact('products', 'flashCount', 'settings', 'q'))
@@ -39,8 +39,8 @@ class FlashSaleController extends Controller
         $data = $request->validate([
             'enabled' => 'nullable|boolean',
             'ends_at' => 'nullable|string|max:20',
-            'label'   => 'nullable|string|max:60',
-            'title'   => 'nullable|string|max:60',
+            'label' => 'nullable|string|max:60',
+            'title' => 'nullable|string|max:60',
         ]);
 
         SiteSetting::put('flashsale.enabled', $request->boolean('enabled') ? '1' : '0', 'boolean', 'flashsale', 'Aktifkan Countdown');
@@ -65,10 +65,28 @@ class FlashSaleController extends Controller
             : "✓ {$product->name} dikeluarkan dari Flash Sale.");
     }
 
+    /** Tambahkan atau keluarkan beberapa produk sekaligus. */
+    public function bulkUpdate(Request $request)
+    {
+        $data = $request->validate([
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'integer|exists:products,id',
+            'action' => 'required|in:add,remove',
+        ]);
+
+        $enabled = $data['action'] === 'add';
+        $count = Product::whereIn('id', $data['product_ids'])->update(['is_flash_sale' => $enabled]);
+
+        return back()->with('toast', $enabled
+            ? "✓ {$count} produk ditambahkan ke Flash Sale."
+            : "✓ {$count} produk dikeluarkan dari Flash Sale.");
+    }
+
     /** Keluarkan semua produk dari flash sale. */
     public function clearAll()
     {
         Product::where('is_flash_sale', true)->update(['is_flash_sale' => false]);
+
         return back()->with('toast', '✓ Semua produk dikeluarkan dari Flash Sale.');
     }
 }

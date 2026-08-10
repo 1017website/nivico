@@ -27,6 +27,7 @@
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--muted)"><span>Subtotal</span><span>Rp{{ number_format($order->subtotal, 0, ',', '.') }}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--muted)"><span>Ongkir</span><span>Rp{{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--green)"><span>Diskon @if($order->promo)({{ $order->promo->code }})@endif</span><span>−Rp{{ number_format($order->discount, 0, ',', '.') }}</span></div>
+        @if($order->service_fee)<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--muted)"><span>Biaya Layanan</span><span>Rp{{ number_format($order->service_fee, 0, ',', '.') }}</span></div>@endif
         <div style="display:flex;justify-content:space-between;font-weight:800;font-size:15px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><span>Total</span><span>Rp{{ number_format($order->total, 0, ',', '.') }}</span></div>
       </div>
     </div>

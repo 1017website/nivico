@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -13,19 +15,24 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderService
 {
-    public function __construct(protected CartService $cartService) {}
+    public function __construct(
+        protected CartService $cartService,
+        protected ServiceFeeService $serviceFee,
+    ) {}
 
     /** Total berat keranjang dalam gram (untuk RajaOngkir). */
     public function cartWeight($cart): int
     {
         $w = (int) $cart->items->sum(fn ($i) => $i->effectiveWeight() * $i->qty);
+
         return max(1, $w);
     }
-
 
     public function createFromCart(array $data): Order
     {
         $summary = $this->cartService->summary($data['shipping_cost'] ?? null);
+        $summary['service_fee'] = $this->serviceFee->calculate((int) $summary['total']);
+        $summary['total'] += $summary['service_fee'];
         $cart = $summary['cart'];
 
         if ($cart->items->isEmpty()) {
@@ -45,7 +52,7 @@ class OrderService
             // kunci baris varian yang dipakai
             $lockedVariants = collect();
             if (! empty($variantIds)) {
-                $lockedVariants = \App\Models\ProductVariant::whereIn('id', $variantIds)
+                $lockedVariants = ProductVariant::whereIn('id', $variantIds)
                     ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
@@ -74,36 +81,37 @@ class OrderService
             }
 
             $order = Order::create([
-                'order_number'    => $this->generateNumber(),
-                'user_id'         => $data['user_id'] ?? null,
-                'recipient_name'  => $data['recipient_name'],
-                'phone'           => $data['phone'],
-                'email'           => $data['email'] ?? null,
-                'address'         => $data['address'],
-                'province'        => $data['province'] ?? null,
-                'city'            => $data['city'] ?? null,
-                'district'        => $data['district'] ?? null,
-                'postal_code'     => $data['postal_code'] ?? null,
-                'destination_id'  => $data['destination_id'] ?? null,
-                'note'            => $data['note'] ?? null,
+                'order_number' => $this->generateNumber(),
+                'user_id' => $data['user_id'] ?? null,
+                'recipient_name' => $data['recipient_name'],
+                'phone' => $data['phone'],
+                'email' => $data['email'] ?? null,
+                'address' => $data['address'],
+                'province' => $data['province'] ?? null,
+                'city' => $data['city'] ?? null,
+                'district' => $data['district'] ?? null,
+                'postal_code' => $data['postal_code'] ?? null,
+                'destination_id' => $data['destination_id'] ?? null,
+                'note' => $data['note'] ?? null,
                 'shipping_method' => $data['shipping_method'],
-                'shipping_courier'=> $data['shipping_courier'] ?? null,
-                'shipping_service'=> $data['shipping_service'] ?? null,
-                'shipping_etd'    => $data['shipping_etd'] ?? null,
+                'shipping_courier' => $data['shipping_courier'] ?? null,
+                'shipping_service' => $data['shipping_service'] ?? null,
+                'shipping_etd' => $data['shipping_etd'] ?? null,
                 'shipping_weight' => $data['shipping_weight'] ?? $this->cartWeight($cart),
                 // Simpan ongkir asli. Promo gratis ongkir dicatat sebagai diskon
                 // sebesar ongkir agar subtotal + ongkir - diskon tetap konsisten.
-                'shipping_cost'   => $summary['shipping'],
-                'payment_method'  => $data['payment_method'],
+                'shipping_cost' => $summary['shipping'],
+                'payment_method' => $data['payment_method'],
                 'payment_gateway' => $data['payment_gateway'] ?? 'manual_transfer',
-                'payment_status'  => 'unpaid',
+                'payment_status' => 'unpaid',
                 'bank_account_id' => $data['bank_account_id'] ?? null,
-                'subtotal'        => $summary['subtotal'],
-                'discount'        => $summary['discount'],
-                'promo_id'        => $cart->promo_id,
-                'total'           => $summary['total'],
-                'status'          => 'pending',
-                'expires_at'      => now()->addHours(24),
+                'subtotal' => $summary['subtotal'],
+                'discount' => $summary['discount'],
+                'service_fee' => $summary['service_fee'],
+                'promo_id' => $cart->promo_id,
+                'total' => $summary['total'],
+                'status' => 'pending',
+                'expires_at' => now()->addHours(24),
             ]);
 
             foreach ($cart->items as $item) {
@@ -112,19 +120,19 @@ class OrderService
 
                 // Harga/SKU/nama dari varian bila ada, jika tidak dari produk
                 $unitPrice = (int) ($v?->price ?? $p->price);
-                $sku       = $v?->sku ?: $p->sku;
-                $varName   = $v?->name;
+                $sku = $v?->sku ?: $p->sku;
+                $varName = $v?->name;
 
                 $order->items()->create([
-                    'product_id'         => $p->id,
+                    'product_id' => $p->id,
                     'product_variant_id' => $v?->id,
-                    'product_name'       => $p->name,
-                    'variation_name'     => $varName,
-                    'sku'                => $sku,
-                    'image'              => $v?->image ?: $p->image,
-                    'price'              => $unitPrice,
-                    'qty'                => $item->qty,
-                    'subtotal'           => $unitPrice * $item->qty,
+                    'product_name' => $p->name,
+                    'variation_name' => $varName,
+                    'sku' => $sku,
+                    'image' => $v?->image ?: $p->image,
+                    'price' => $unitPrice,
+                    'qty' => $item->qty,
+                    'subtotal' => $unitPrice * $item->qty,
                 ]);
 
                 // potong stok & tambah terjual
@@ -140,15 +148,15 @@ class OrderService
                     $p->increment('sold', $item->qty);
                 }
 
-                \App\Models\StockMovement::create([
-                    'product_id'   => $p->id,
-                    'type'         => 'sale',
-                    'qty_change'   => -1 * (int) $item->qty,
+                StockMovement::create([
+                    'product_id' => $p->id,
+                    'type' => 'sale',
+                    'qty_change' => -1 * (int) $item->qty,
                     'stock_before' => $before,
-                    'stock_after'  => max(0, $before - (int) $item->qty),
-                    'reason'       => $v ? 'Penjualan (varian: '.$v->name.')' : 'Penjualan',
-                    'reference'    => $order->order_number,
-                    'user_id'      => $order->user_id,
+                    'stock_after' => max(0, $before - (int) $item->qty),
+                    'reason' => $v ? 'Penjualan (varian: '.$v->name.')' : 'Penjualan',
+                    'reference' => $order->order_number,
+                    'user_id' => $order->user_id,
                 ]);
             }
 
@@ -187,9 +195,9 @@ class OrderService
             DB::transaction(function () use ($order) {
                 foreach ($order->items as $item) {
                     if ($item->product_variant_id) {
-                        \App\Models\ProductVariant::where('id', $item->product_variant_id)->update([
+                        ProductVariant::where('id', $item->product_variant_id)->update([
                             'stock' => DB::raw("stock + {$item->qty}"),
-                            'sold'  => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
+                            'sold' => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
                         ]);
                         // sold produk induk ikut dikoreksi
                         if ($item->product_id) {
@@ -200,7 +208,7 @@ class OrderService
                     } elseif ($item->product_id) {
                         Product::where('id', $item->product_id)->update([
                             'stock' => DB::raw("stock + {$item->qty}"),
-                            'sold'  => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
+                            'sold' => DB::raw("GREATEST(sold - {$item->qty}, 0)"),
                         ]);
                     }
                 }

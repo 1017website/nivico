@@ -79,6 +79,7 @@
           <div class="sum-row"><span>Berat Total</span><span>{{ number_format($weight) }} gram</span></div>
           <div class="sum-row"><span>Ongkos Kirim</span><span id="sum-ship">—</span></div>
           <div class="sum-row"><span id="sum-discount-label">Diskon{{ $cart->promo ? ' ('.$cart->promo->code.')' : '' }}</span><span id="sum-discount" style="color:var(--green)">−Rp{{ number_format($discount, 0, ',', '.') }}</span></div>
+          <div class="sum-row"><span>Biaya Layanan</span><span id="sum-service-fee">Rp{{ number_format($estimatedServiceFee, 0, ',', '.') }}</span></div>
 
           <div class="checkout-promo">
             <label class="checkout-promo-label" for="checkout-promo-code">
@@ -95,7 +96,7 @@
             </div>
           </div>
 
-          <div class="sum-row tot"><span>Total Bayar</span><span id="sum-total">Rp{{ number_format($subtotal - $discount, 0, ',', '.') }}</span></div>
+          <div class="sum-row tot"><span>Total Bayar</span><span id="sum-total">Rp{{ number_format($subtotal - $discount + $estimatedServiceFee, 0, ',', '.') }}</span></div>
           <button class="btn-bayar" type="submit" id="btn-checkout">Buat Pesanan</button>
           <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran yang aman.</p>
         </div>
@@ -122,6 +123,8 @@
 <script>
 (function(){
   const SUBTOTAL = {{ $subtotal }};
+  const SERVICE_FEE_TYPE = @json($serviceFeeSettings['type']);
+  const SERVICE_FEE_VALUE = Number(@json($serviceFeeSettings['value']));
   const csrf = document.querySelector('meta[name=csrf-token]').content;
   let activePromo = @json($checkoutPromoData);
   const COURIER_LOGOS = {
@@ -151,6 +154,7 @@
   const sumShip = document.getElementById('sum-ship');
   const sumDiscount = document.getElementById('sum-discount');
   const sumDiscountLabel = document.getElementById('sum-discount-label');
+  const sumServiceFee = document.getElementById('sum-service-fee');
   const sumTotal = document.getElementById('sum-total');
   const shipOption = document.getElementById('shipping_option');
   const promoCode = document.getElementById('checkout-promo-code');
@@ -184,10 +188,15 @@
   function updateSummary(){
     const shipping = activeShippingCost === null ? 0 : Number(activeShippingCost);
     const discount = promoDiscount(shipping);
+    const beforeFee = Math.max(0, SUBTOTAL + shipping - discount);
+    const serviceFee = SERVICE_FEE_TYPE === 'percent'
+      ? Math.round(beforeFee * Math.min(100, SERVICE_FEE_VALUE) / 100)
+      : Math.round(Math.max(0, SERVICE_FEE_VALUE));
 
     sumDiscountLabel.textContent = activePromo ? `Diskon (${activePromo.code})` : 'Diskon';
     sumDiscount.textContent = '−' + rupiah(discount);
-    sumTotal.textContent = rupiah(SUBTOTAL + shipping - discount);
+    sumServiceFee.textContent = rupiah(serviceFee);
+    sumTotal.textContent = rupiah(beforeFee + serviceFee);
 
     if(activeShippingCost === null){
       sumShip.textContent = '—';

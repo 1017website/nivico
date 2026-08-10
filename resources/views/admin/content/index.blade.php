@@ -97,13 +97,23 @@
             </label>
           </div>
 
+        @elseif($s->key === 'checkout.service_fee_type')
+          <div class="fld">
+            <label>{{ $s->label }}</label>
+            <select class="inp" name="val[{{ $s->key }}]">
+              <option value="fixed" @selected($val === 'fixed')>Rupiah (Rp)</option>
+              <option value="percent" @selected($val === 'percent')>Persentase (%)</option>
+            </select>
+            <small style="color:var(--muted)">Persentase dihitung dari total setelah diskon dan ongkir.</small>
+          </div>
+
         {{-- ── TEXTAREA ── --}}
         @elseif($s->type === 'textarea')
           <div class="fld"><label>{{ $s->label }}</label><textarea class="inp" rows="3" name="val[{{ $s->key }}]">{{ $val }}</textarea></div>
 
         {{-- ── TEXT / NUMBER ── --}}
         @else
-          <div class="fld"><label>{{ $s->label }}</label><input class="inp" type="text" name="val[{{ $s->key }}]" value="{{ $val }}"></div>
+          <div class="fld"><label>{{ $s->label }}</label><input class="inp" type="{{ $s->type === 'number' ? 'number' : 'text' }}" name="val[{{ $s->key }}]" value="{{ $val }}" @if($s->type === 'number') min="0" step="0.01" @endif></div>
         @endif
 
       @empty

@@ -40,6 +40,15 @@
         // Nilai awal tampilan: produk single pakai kolom produk; bervarian pakai varian termurah.
         $initStock = $product->has_variants ? 0 : (int) $product->stock;
         $initPrice = $product->has_variants ? (int) $product->min_price : (int) $product->price;
+        $waRaw = trim($site['social.whatsapp'] ?? '') ?: trim($site['contact.phone'] ?? '');
+        $waDigits = preg_replace('/\D+/', '', $waRaw);
+        if (str_starts_with($waDigits, '0')) {
+            $waDigits = '62'.substr($waDigits, 1);
+        } elseif ($waDigits !== '' && ! str_starts_with($waDigits, '62')) {
+            $waDigits = '62'.$waDigits;
+        }
+        $waBuyMessage = 'Halo NIVICO, saya ingin membeli produk '.$product->name.'. Mohon bantu informasinya. '.route('products.show', $product);
+        $waBuyLink = $waDigits !== '' ? 'https://wa.me/'.$waDigits.'?text='.rawurlencode($waBuyMessage) : null;
       @endphp
 
       <div class="det-pb">
@@ -92,6 +101,11 @@
         <div class="det-btns">
           <button class="btn-beli" type="submit" id="btn-beli" formaction="{{ route('cart.add') }}" name="redirect" value="checkout" {{ (!$product->has_variants && $product->stock < 1) ? 'disabled' : '' }}>Beli Sekarang</button>
           <button class="btn-cart-d" type="submit" id="btn-cart" {{ (!$product->has_variants && $product->stock < 1) ? 'disabled' : '' }}>+ Keranjang</button>
+          @if($waBuyLink)
+            <a class="btn-wa-buy" href="{{ $waBuyLink }}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+              <i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Pembelian via WhatsApp
+            </a>
+          @endif
         </div>
         @if($product->has_variants)
           <div id="var-warn" style="display:none;color:var(--red);font-size:12.5px;margin-top:8px">Silakan pilih varian terlebih dahulu.</div>

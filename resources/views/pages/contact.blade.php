@@ -92,12 +92,12 @@
     </div>
     <div class="kontak-form">
       <h2>Kirim Pesan</h2>
-      <p>Ada pertanyaan atau masukan? Kirim pesan kepada kami dan kami akan merespons sesegera mungkin.</p>
+      <p>Ada pertanyaan atau masukan? Pesan dikirim menggunakan akun <strong>{{ auth()->user()->email }}</strong>.</p>
       <form method="POST" action="{{ route('contact.store') }}">
         @csrf
-        <div class="k-fg"><label>Nama Lengkap</label><input type="text" name="name" value="{{ old('name') }}" placeholder="Nama lengkap Anda" required></div>
-        <div class="k-fg"><label>Email</label><input type="email" name="email" value="{{ old('email') }}" placeholder="email@contoh.com" required></div>
-        <div class="k-fg"><label>No. Telepon</label><input type="tel" name="phone" value="{{ old('phone') }}" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="k-fg"><label>Nama Lengkap</label><input type="text" value="{{ auth()->user()->name }}" readonly></div>
+        <div class="k-fg"><label>Email</label><input type="email" value="{{ auth()->user()->email }}" readonly></div>
+        <div class="k-fg"><label>No. Telepon</label><input type="tel" name="phone" value="{{ old('phone', auth()->user()->phone) }}" placeholder="08xx-xxxx-xxxx"></div>
         <div class="k-fg"><label>Topik</label>
           <select name="topic">
             <option value="">Pilih topik</option>

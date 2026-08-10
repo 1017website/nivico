@@ -20,7 +20,7 @@ class Order extends Model
         'snap_token', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type',
         'duitku_reference', 'duitku_merchant_order_id', 'duitku_payment_url', 'duitku_payment_method', 'duitku_publisher_order_id',
         'paid_at', 'admin_seen_at', 'admin_notice_type', 'bank_account_id', 'payment_proof',
-        'subtotal', 'discount', 'promo_id', 'total', 'status', 'expires_at',
+        'subtotal', 'discount', 'service_fee', 'promo_id', 'total', 'status', 'expires_at',
         'created_by', 'updated_by', 'deleted_by',
     ];
 

@@ -10,12 +10,13 @@ class ContactController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'    => 'required|string|max:120',
-            'email'   => 'required|email|max:160',
-            'phone'   => 'nullable|string|max:30',
-            'topic'   => 'nullable|string|max:80',
+            'phone' => 'nullable|string|max:30',
+            'topic' => 'nullable|string|max:80',
             'message' => 'required|string|max:2000',
         ]);
+
+        $data['name'] = $request->user()->name;
+        $data['email'] = $request->user()->email;
 
         ContactMessage::create($data);
 

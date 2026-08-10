@@ -11,15 +11,16 @@ class ContentController extends Controller
 {
     /** Definisi tab + key yang dikelola tiap tab. */
     protected array $tabs = [
-        'hero'      => 'Hero Slider',
-        'banner'    => 'Banner Promo',
-        'label'     => 'Judul Section',
+        'hero' => 'Hero Slider',
+        'banner' => 'Banner Promo',
+        'label' => 'Judul Section',
         'flashsale' => 'Flash Sale',
-        'popup'     => 'Popup',
-        'brand'     => 'Brand & Logo',
-        'kontak'    => 'Kontak',
-        'sosmed'    => 'Sosial Media',
-        'footer'    => 'Footer',
+        'popup' => 'Popup',
+        'brand' => 'Brand & Logo',
+        'kontak' => 'Kontak',
+        'sosmed' => 'Sosial Media',
+        'footer' => 'Footer',
+        'transaksi' => 'Biaya Layanan',
     ];
 
     public function index(Request $request)
@@ -32,8 +33,8 @@ class ContentController extends Controller
         $settings = SiteSetting::where('group', $tab)->orderBy('id')->get();
 
         return view('admin.content.index', [
-            'tabs'     => $this->tabs,
-            'tab'      => $tab,
+            'tabs' => $this->tabs,
+            'tab' => $tab,
             'settings' => $settings,
         ])->with('seoKey', null);
     }
@@ -50,9 +51,24 @@ class ContentController extends Controller
         // menafsirkannya sebagai nested ['val']['hero']['slides'] dan menghasilkan
         // null (inilah penyebab konten "tidak tersimpan"). Akses langsung dengan
         // key literal dari array.
-        $valInput  = (array) $request->input('val', []);
+        $valInput = (array) $request->input('val', []);
         $jsonInput = (array) $request->input('json', []);
-        $files     = (array) $request->file('file', []);
+        $files = (array) $request->file('file', []);
+
+        if ($tab === 'transaksi') {
+            validator([
+                'type' => $valInput['checkout.service_fee_type'] ?? null,
+                'value' => $valInput['checkout.service_fee_value'] ?? null,
+            ], [
+                'type' => 'required|in:fixed,percent',
+                'value' => 'required|numeric|min:0|max:1000000000',
+            ])->validate();
+
+            if (($valInput['checkout.service_fee_type'] ?? null) === 'percent'
+                && (float) ($valInput['checkout.service_fee_value'] ?? 0) > 100) {
+                return back()->withErrors(['value' => 'Persentase biaya layanan maksimal 100%.'])->withInput();
+            }
+        }
 
         foreach ($settings as $s) {
             // ── JSON (array repeater: hero.slides, hero.perks, banner.promos) ──
@@ -62,6 +78,7 @@ class ContentController extends Controller
                 $rows = collect($rows)->filter(fn ($r) => collect($r)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty())
                     ->values()->all();
                 $s->update(['value' => json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+
                 continue;
             }
 
@@ -69,7 +86,7 @@ class ContentController extends Controller
             if ($s->type === 'image') {
                 // name file di form: file[hero__bg] (titik diganti __ agar valid)
                 $fileKey = str_replace('.', '__', $s->key);
-                $upload  = $files[$fileKey] ?? null;
+                $upload = $files[$fileKey] ?? null;
                 if ($upload) {
                     if ($s->value && str_starts_with($s->value, '/storage/')) {
                         Storage::disk('public')->delete(str_replace('/storage/', '', $s->value));
@@ -79,6 +96,7 @@ class ContentController extends Controller
                 } elseif (($valInput[$s->key] ?? '') !== '') {
                     $s->update(['value' => $valInput[$s->key]]);
                 }
+
                 continue;
             }
 
@@ -86,6 +104,7 @@ class ContentController extends Controller
             if ($s->type === 'boolean') {
                 $checked = isset($valInput[$s->key]) && in_array($valInput[$s->key], ['1', 1, true, 'true', 'on'], true);
                 $s->update(['value' => $checked ? '1' : '0']);
+
                 continue;
             }
 

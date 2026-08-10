@@ -64,6 +64,11 @@
       @if($snapToken)
         <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px">Klik tombol di bawah untuk menyelesaikan pembayaran melalui Midtrans (QRIS, GoPay, kartu, dan Virtual Account bank).</p>
         <button class="btn-pay-now" id="pay-button">💳 Bayar Sekarang</button>
+        <form method="POST" action="{{ route('payment.change-method', $order->order_number) }}" style="margin-top:10px" onsubmit="return confirm('Batalkan transaksi pembayaran saat ini dan pilih metode baru?')">
+          @csrf
+          <button class="btn-change-payment" type="submit"><i class="fa-solid fa-arrows-rotate"></i> Ganti Metode Pembayaran</button>
+        </form>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:8px">Gunakan tombol ini bila Anda sudah memilih VA/QRIS tetapi ingin memakai metode lain. Transaksi lama akan dibatalkan.</p>
         @push('scripts')
         <script src="{{ config('midtrans.snap_url') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
         <script>
@@ -130,8 +135,16 @@
       <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:4px"><span>Subtotal</span><span>Rp{{ number_format($order->subtotal,0,',','.') }}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:4px"><span>Ongkir ({{ $order->shipping_method }})</span><span>Rp{{ number_format($order->shipping_cost,0,',','.') }}</span></div>
       @if($order->discount)<div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--green);margin-bottom:4px"><span>Diskon</span><span>−Rp{{ number_format($order->discount,0,',','.') }}</span></div>@endif
+      @if($order->service_fee)<div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:4px"><span>Biaya Layanan</span><span>Rp{{ number_format($order->service_fee,0,',','.') }}</span></div>@endif
       <div style="display:flex;justify-content:space-between;font-weight:800;color:var(--navy);border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><span>Total</span><span>Rp{{ number_format($order->total,0,',','.') }}</span></div>
     </div>
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.btn-change-payment{width:100%;background:#fff;color:var(--navy);border:1px solid var(--navy);border-radius:var(--radius);padding:12px;font-size:13.5px;font-weight:700;cursor:pointer}
+.btn-change-payment:hover{background:#eef2ff}
+</style>
+@endpush

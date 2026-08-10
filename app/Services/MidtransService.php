@@ -16,7 +16,9 @@ use Illuminate\Support\Str;
 class MidtransService
 {
     protected string $serverKey;
+
     protected string $clientKey;
+
     protected string $snapApiUrl;
 
     public function __construct()
@@ -71,6 +73,9 @@ class MidtransService
         if ($order->discount > 0) {
             $items[] = ['id' => 'DISC', 'price' => -1 * (int) $order->discount, 'quantity' => 1, 'name' => 'Diskon'];
         }
+        if ($order->service_fee > 0) {
+            $items[] = ['id' => 'FEE', 'price' => (int) $order->service_fee, 'quantity' => 1, 'name' => 'Biaya Layanan'];
+        }
 
         // Snap mensyaratkan jumlah item tepat sama dengan gross_amount.
         $itemTotal = collect($items)->sum(fn (array $item) => $item['price'] * $item['quantity']);
@@ -112,6 +117,7 @@ class MidtransService
 
             if (! $res->successful()) {
                 Log::warning('Midtrans snap gagal', ['status' => $res->status(), 'body' => $res->body()]);
+
                 return null;
             }
 
@@ -131,8 +137,42 @@ class MidtransService
             return $token;
         } catch (\Throwable $e) {
             Log::error('Midtrans snap exception', ['msg' => $e->getMessage()]);
+
             return null;
         }
+    }
+
+    /** Batalkan transaksi aktif sebelum menerbitkan pilihan pembayaran baru. */
+    public function cancelTransaction(string $midtransOrderId): bool
+    {
+        if (! $this->isConfigured() || trim($midtransOrderId) === '') {
+            return false;
+        }
+
+        try {
+            $response = Http::withBasicAuth($this->serverKey, '')
+                ->acceptJson()
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->post(rtrim((string) config('midtrans.api_base'), '/').'/v2/'.rawurlencode($midtransOrderId).'/cancel');
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            Log::warning('Midtrans cancel gagal', [
+                'order' => $midtransOrderId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Midtrans cancel exception', [
+                'order' => $midtransOrderId,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return false;
     }
 
     /**

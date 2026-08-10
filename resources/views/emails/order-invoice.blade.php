@@ -127,6 +127,12 @@
                       <td align="right" style="font-size:12px;color:#15803d;padding:4px 0">−Rp{{ number_format($order->discount, 0, ',', '.') }}</td>
                     </tr>
                     @endif
+                    @if($order->service_fee > 0)
+                    <tr>
+                      <td style="font-size:12px;color:#64748b;padding:4px 0">Biaya Layanan</td>
+                      <td align="right" style="font-size:12px;padding:4px 0">Rp{{ number_format($order->service_fee, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
                     <tr>
                       <td style="font-size:15px;font-weight:800;padding:11px 0 0;border-top:2px solid #dfe4ee">Total</td>
                       <td align="right" style="font-size:17px;font-weight:800;color:#182a82;padding:11px 0 0;border-top:2px solid #dfe4ee">Rp{{ number_format($order->total, 0, ',', '.') }}</td>

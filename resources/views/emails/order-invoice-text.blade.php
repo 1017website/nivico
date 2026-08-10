@@ -23,6 +23,9 @@ Ongkir ({{ $order->shipping_method }}): Rp{{ number_format($order->shipping_cost
 @if($order->discount > 0)
 Diskon: -Rp{{ number_format($order->discount, 0, ',', '.') }}
 @endif
+@if($order->service_fee > 0)
+Biaya Layanan: Rp{{ number_format($order->service_fee, 0, ',', '.') }}
+@endif
 TOTAL: Rp{{ number_format($order->total, 0, ',', '.') }}
 
 METODE PEMBAYARAN: {{ strtoupper($order->payment_gateway ?: $order->payment_method) }}
