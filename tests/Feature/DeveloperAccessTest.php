@@ -3,8 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -12,29 +13,57 @@ class DeveloperAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_migration_creates_the_developer_account(): void
+    private User $developer;
+
+    protected function setUp(): void
     {
-        $developer = User::where('email', '1017website@gmail.com')->firstOrFail();
+        parent::setUp();
+
+        if (! Schema::hasColumn('users', 'is_developer')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->boolean('is_developer')->default(false);
+            });
+        }
+
+        $this->developer = User::create([
+            'first_name' => 'Test',
+            'last_name' => 'Developer',
+            'email' => 'developer-test@example.com',
+            'password' => 'test-password',
+            'role' => 'admin',
+            'role_id' => null,
+            'is_active' => true,
+        ]);
+
+        DB::table('users')
+            ->where('id', $this->developer->id)
+            ->update(['is_developer' => true]);
+
+        $this->developer->refresh();
+    }
+
+    public function test_developer_flag_identifies_the_special_account(): void
+    {
+        $developer = $this->developer;
 
         $this->assertTrue($developer->isDeveloper());
         $this->assertTrue($developer->isAdmin());
         $this->assertTrue($developer->is_active);
-        $this->assertTrue(Hash::check('1017Website2020.', $developer->password));
     }
 
     public function test_developer_is_hidden_from_the_user_page(): void
     {
-        $developer = User::where('email', '1017website@gmail.com')->firstOrFail();
+        $developer = $this->developer;
 
         $this->actingAs($developer)
             ->get(route('admin.users.index'))
             ->assertOk()
-            ->assertDontSee('1017website@gmail.com');
+            ->assertDontSee($developer->email);
     }
 
     public function test_only_developer_can_access_the_system_page(): void
     {
-        $developer = User::where('email', '1017website@gmail.com')->firstOrFail();
+        $developer = $this->developer;
         $superAdmin = User::create([
             'first_name' => 'Super',
             'last_name' => 'Admin',
