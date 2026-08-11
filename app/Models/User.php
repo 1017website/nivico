@@ -23,6 +23,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_developer' => 'boolean',
         ];
     }
 
@@ -53,6 +54,11 @@ class User extends Authenticatable
             || $this->getRawOriginal('role') === 'admin';
     }
 
+    public function isDeveloper(): bool
+    {
+        return (bool) $this->is_developer;
+    }
+
     /**
      * Selalu kembalikan objek Role (dari relasi) atau null — menghindari
      * ambiguitas antara kolom legacy `role` (string) dan relasi `role()`.
@@ -62,6 +68,7 @@ class User extends Authenticatable
         if (! $this->role_id) {
             return null;
         }
+
         return $this->relationLoaded('role')
             ? $this->getRelationValue('role')
             : $this->role()->with('permissions')->first();
@@ -74,6 +81,7 @@ class User extends Authenticatable
             return true;
         }
         $role = $this->roleModel();
+
         return $role ? $role->hasPermission($slug) : false;
     }
 

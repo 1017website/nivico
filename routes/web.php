@@ -198,8 +198,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::put('content/{tab}', [ContentController::class, 'update'])->name('content.update');
     });
 
-    // ── Sistem (artisan) — khusus Super Admin ──
-    Route::middleware('permission:settings.manage')->group(function () {
+    // ── Sistem (artisan) — khusus akun developer ──
+    Route::middleware(['permission:settings.manage', 'developer'])->group(function () {
         Route::get('system', [SystemController::class, 'index'])->name('system.index');
         Route::post('system/run', [SystemController::class, 'run'])->name('system.run');
     });

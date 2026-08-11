@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CartCount;
+use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\DeveloperMiddleware;
+use App\Http\Middleware\TrackVisit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\AdminMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,13 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
-            \App\Http\Middleware\CartCount::class,
-            \App\Http\Middleware\TrackVisit::class,
+            CartCount::class,
+            TrackVisit::class,
         ]);
 
         $middleware->alias([
             'admin' => AdminMiddleware::class,
-            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'developer' => DeveloperMiddleware::class,
+            'permission' => CheckPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

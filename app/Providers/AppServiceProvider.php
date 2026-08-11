@@ -48,8 +48,8 @@ class AppServiceProvider extends ServiceProvider
                 if (! $user) {
                     return false;
                 }
-                // menu super_only hanya untuk Super Admin
-                if (($m['super_only'] ?? false) && ! $user->isSuperAdmin()) {
+                // Menu developer_only tidak pernah ditampilkan ke Super Admin biasa.
+                if (($m['developer_only'] ?? false) && ! $user->isDeveloper()) {
                     return false;
                 }
 

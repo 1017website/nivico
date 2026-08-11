@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="panel" style="margin-bottom:20px">
-  <div class="panel-hd"><h2>Perintah Sistem</h2><span class="badge b-cancelled">Khusus Super Admin</span></div>
+  <div class="panel-hd"><h2>Perintah Sistem</h2><span class="badge b-cancelled">Khusus Developer</span></div>
   <div style="padding:18px 20px;color:var(--muted);font-size:13px;line-height:1.6">
     Jalankan perintah pemeliharaan langsung dari panel. Berguna saat tidak punya akses SSH di shared hosting (cPanel).
     Setiap perintah tercatat di <strong>Log Aktivitas</strong>.
