@@ -6,13 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('role')->where('is_developer', false)->latest();
+        $query = User::with('role');
+        if (Schema::hasColumn('users', 'is_developer')) {
+            $query->where('is_developer', false);
+        }
+        $query->latest();
         if ($request->filled('q')) {
             $query->where(function ($w) use ($request) {
                 $w->where('first_name', 'like', '%'.$request->q.'%')

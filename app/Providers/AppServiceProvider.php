@@ -44,13 +44,19 @@ class AppServiceProvider extends ServiceProvider
         // Share menu admin (terfilter permission) ke layout admin
         View::composer('layouts.admin', function ($view) {
             $user = auth()->user();
-            $menus = collect(config('adminmenu'))->filter(function ($m) use ($user) {
+            $menus = collect(config('adminmenu'))->filter(function ($m, $key) use ($user) {
                 if (! $user) {
                     return false;
                 }
                 // Menu developer_only tidak pernah ditampilkan ke Super Admin biasa.
-                if (($m['developer_only'] ?? false) && ! $user->isDeveloper()) {
-                    return false;
+                if ($key === 'system' || ($m['developer_only'] ?? false)) {
+                    $developerMigrationPending = Schema::hasTable('users')
+                        && ! Schema::hasColumn('users', 'is_developer');
+                    $canBootstrapDeveloper = $developerMigrationPending && $user->isSuperAdmin();
+
+                    if (! $user->isDeveloper() && ! $canBootstrapDeveloper) {
+                        return false;
+                    }
                 }
 
                 return $user->hasPermission($m['permission']);

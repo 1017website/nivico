@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class SystemController extends Controller
 {
@@ -71,19 +72,33 @@ class SystemController extends Controller
 
     public function index()
     {
+        $bootstrapAccess = $this->isBootstrapAccess();
+        abort_unless(auth()->user()?->isDeveloper() || $bootstrapAccess, 403, 'Akses khusus developer.');
+
+        $commands = $this->commands();
+        if ($bootstrapAccess) {
+            $commands = array_intersect_key($commands, ['migrate' => true]);
+        }
+
         return view('admin.system.index', [
-            'commands' => $this->commands(),
+            'commands' => $commands,
+            'bootstrapAccess' => $bootstrapAccess,
         ])->with('seoKey', null);
     }
 
     public function run(Request $request)
     {
         // Lapis keamanan kedua selain middleware route.
-        abort_unless(auth()->user()?->isDeveloper(), 403, 'Akses khusus developer.');
+        $bootstrapAccess = $this->isBootstrapAccess();
+        abort_unless(auth()->user()?->isDeveloper() || $bootstrapAccess, 403, 'Akses khusus developer.');
 
         $data = $request->validate([
             'command' => 'required|string',
         ]);
+
+        if ($bootstrapAccess && $data['command'] !== 'migrate') {
+            abort(403, 'Super Admin hanya dapat menjalankan migration developer.');
+        }
 
         $commands = $this->commands();
         $key = $data['command'];
@@ -111,6 +126,11 @@ class SystemController extends Controller
                 'user_agent' => substr((string) $request->userAgent(), 0, 255),
             ]);
 
+            if ($bootstrapAccess && $exit === 0 && Schema::hasColumn('users', 'is_developer')) {
+                return redirect()->route('admin.dashboard')
+                    ->with('toast', '✓ Migration berhasil. Menu Sistem sekarang khusus akun developer.');
+            }
+
             return back()->with('cmd_result', [
                 'label' => $def['label'],
                 'exit' => $exit,
@@ -127,5 +147,12 @@ class SystemController extends Controller
                 'ok' => false,
             ]);
         }
+    }
+
+    private function isBootstrapAccess(): bool
+    {
+        return Schema::hasTable('users')
+            && ! Schema::hasColumn('users', 'is_developer')
+            && (bool) auth()->user()?->isSuperAdmin();
     }
 }

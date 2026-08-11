@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class DeveloperAccessTest extends TestCase
@@ -70,5 +71,29 @@ class DeveloperAccessTest extends TestCase
             ->get(route('admin.users.index'))
             ->assertOk()
             ->assertDontSee(route('admin.system.index'), false);
+    }
+
+    public function test_super_admin_can_run_the_developer_migration_when_it_is_still_pending(): void
+    {
+        Schema::table('users', function ($table) {
+            $table->dropColumn('is_developer');
+        });
+
+        $superAdmin = User::create([
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+            'email' => 'bootstrap-admin@example.com',
+            'password' => 'password',
+            'role' => 'admin',
+            'role_id' => null,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->get(route('admin.system.index'))
+            ->assertOk()
+            ->assertSee('Aktivasi Developer')
+            ->assertSee('php artisan migrate')
+            ->assertDontSee('php artisan optimize:clear');
     }
 }
