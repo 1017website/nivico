@@ -17,7 +17,7 @@
     <div class="empty">Belum ada produk. Klik "Tambah Produk" untuk membuat.</div>
   @else
   <div class="table-wrap"><table>
-    <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Terjual</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Berat</th><th>Terjual</th><th>Status</th><th></th></tr></thead>
     <tbody>
       @foreach($products as $p)
         <tr>
@@ -28,6 +28,7 @@
           <td>{{ $p->category->name ?? '-' }}</td>
           <td style="font-weight:600">@if($p->has_variants && $p->hasPriceRange())Rp{{ number_format($p->min_price, 0, ',', '.') }}+@else Rp{{ number_format($p->min_price, 0, ',', '.') }}@endif</td>
           <td><span class="badge {{ $p->total_stock < 10 ? 'b-cancelled' : 'b-completed' }}">{{ $p->total_stock }}</span></td>
+          <td>{{ number_format($p->weight ?? 1000, 0, ',', '.') }} g</td>
           <td>{{ $p->sold }}</td>
           <td><span class="badge {{ $p->is_active ? 'b-completed' : 'b-cancelled' }}">{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td style="white-space:nowrap">

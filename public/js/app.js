@@ -200,3 +200,24 @@ function closePopup() {
   if (overlay) overlay.classList.remove('show');
   sessionStorageSet('nivico_popup_closed', '1');
 }
+
+// ── POPUP GROSIR WHATSAPP (sekali per sesi browser tab) ──
+document.addEventListener('DOMContentLoaded', function () {
+  const popup = document.getElementById('wholesale-popup');
+  if (!popup || sessionStorageGet('nivico_wholesale_popup_closed')) return;
+
+  const showTimer = window.setTimeout(function () {
+    popup.classList.add('show');
+    popup.setAttribute('aria-hidden', 'false');
+  }, 1800);
+
+  const closeButton = popup.querySelector('[data-wholesale-close]');
+  if (closeButton) {
+    closeButton.addEventListener('click', function () {
+      window.clearTimeout(showTimer);
+      popup.classList.remove('show');
+      popup.setAttribute('aria-hidden', 'true');
+      sessionStorageSet('nivico_wholesale_popup_closed', '1');
+    });
+  }
+});

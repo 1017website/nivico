@@ -27,6 +27,7 @@
         <div class="fld"><label>Harga Coret / Lama (Rp, opsional)</label><input class="inp" type="number" name="old_price" value="{{ old('old_price', $product->old_price) }}" min="0"></div>
 
         <div class="fld" id="fld-stock"><label>Stok</label><input class="inp" type="number" name="stock" value="{{ old('stock', $product->stock ?? 0) }}" min="0"></div>
+        <div class="fld"><label>Berat Produk (gram) <span style="color:var(--red)">*</span></label><input class="inp" type="number" name="weight" value="{{ old('weight', $product->weight ?? 1000) }}" min="1" max="1000000" required><small style="color:var(--muted)">Digunakan untuk menghitung biaya pengiriman. Contoh: 1 kg = 1000 gram.</small></div>
         <div class="fld"><label>Badge</label>
           <select class="inp" name="badge">
             <option value="">Tidak ada</option>
@@ -38,8 +39,43 @@
         <div class="fld"><label>Rating (0–5)</label><input class="inp" type="number" step="0.1" max="5" min="0" name="rating" value="{{ old('rating', $product->rating ?? 4.8) }}"></div>
         <div class="fld"><label>Jumlah Ulasan</label><input class="inp" type="number" name="rating_count" value="{{ old('rating_count', $product->rating_count ?? 0) }}" min="0"></div>
 
-        <div class="fld full"><label>URL Gambar (atau upload di bawah)</label><input class="inp" type="text" name="image" value="{{ old('image', $product->image) }}" placeholder="https://..."></div>
-        <div class="fld full"><label>Upload Gambar (opsional, menimpa URL)</label><input class="inp" type="file" name="image_file" accept="image/*"></div>
+        @php
+          $currentGallery = $product->exists ? $product->images : collect();
+          $currentImageCount = ($product->image ? 1 : 0) + $currentGallery->count();
+        @endphp
+        <div class="fld full">
+          <label>URL Gambar Utama (opsional)</label>
+          <input class="inp" type="text" name="image" value="{{ old('image', $product->image) }}" placeholder="https://...">
+        </div>
+
+        @if($currentImageCount > 0)
+          <div class="fld full">
+            <label>Gambar Saat Ini ({{ $currentImageCount }}/10)</label>
+            <div id="current-images" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:4px">
+              @if($product->image)
+                <label class="product-image-item" style="border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer">
+                  <img src="{{ $product->image }}" alt="Gambar utama" style="width:100%;height:90px;object-fit:cover;border-radius:6px" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">
+                  <span style="display:block;font-size:11px;font-weight:700;margin-top:6px">Gambar utama</span>
+                  <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--red);margin-top:4px"><input class="image-remove-check" type="checkbox" name="remove_primary_image" value="1"> Hapus</span>
+                </label>
+              @endif
+              @foreach($currentGallery as $galleryImage)
+                <label class="product-image-item" style="border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer">
+                  <img src="{{ $galleryImage->path }}" alt="Gambar galeri" style="width:100%;height:90px;object-fit:cover;border-radius:6px" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'">
+                  <span style="display:block;font-size:11px;font-weight:700;margin-top:6px">Galeri {{ $loop->iteration }}</span>
+                  <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--red);margin-top:4px"><input class="image-remove-check" type="checkbox" name="remove_images[]" value="{{ $galleryImage->id }}"> Hapus</span>
+                </label>
+              @endforeach
+            </div>
+          </div>
+        @endif
+
+        <div class="fld full">
+          <label>Upload Gambar (maksimal 10 gambar total)</label>
+          <input class="inp" id="image-files" type="file" name="image_files[]" accept="image/jpeg,image/png,image/webp" multiple data-existing-count="{{ $currentImageCount }}">
+          <small id="image-help" style="color:var(--muted)">Pilih beberapa file sekaligus. Format JPG, PNG, atau WebP; maksimal 5 MB per gambar.</small>
+          <div id="new-image-preview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px"></div>
+        </div>
 
         <div class="fld full"><label>Deskripsi Produk <span style="color:var(--red)">*</span></label><textarea class="inp" name="description" rows="5" minlength="20" maxlength="5000" required placeholder="Jelaskan fungsi, spesifikasi utama, isi paket, dan penggunaan produk.">{{ old('description', $product->description) }}</textarea><small style="color:var(--muted)">Wajib diisi agar pelanggan dan penyedia pembayaran dapat memahami produk yang dijual.</small></div>
 
@@ -118,6 +154,9 @@
   var addBtn = document.getElementById('add-variant');
   var fldPrice = document.getElementById('fld-price');
   var fldStock = document.getElementById('fld-stock');
+  var imageFiles = document.getElementById('image-files');
+  var imageHelp = document.getElementById('image-help');
+  var imagePreview = document.getElementById('new-image-preview');
   var idx = body ? body.querySelectorAll('.var-row').length : 0;
 
   function toggle() {
@@ -145,8 +184,58 @@
     }
   });
 
+  function remainingExistingImages() {
+    var existing = imageFiles ? parseInt(imageFiles.dataset.existingCount || '0', 10) : 0;
+    var removed = document.querySelectorAll('.image-remove-check:checked').length;
+    return Math.max(0, existing - removed);
+  }
+
+  function updateImageHelp(selected) {
+    if (!imageHelp) return;
+    var existing = remainingExistingImages();
+    imageHelp.textContent = existing + ' gambar tersimpan + ' + selected + ' gambar baru (maksimal 10). Format JPG, PNG, atau WebP; maksimal 5 MB per gambar.';
+  }
+
+  if (imageFiles) imageFiles.addEventListener('change', function () {
+    var files = Array.from(this.files || []);
+    var available = 10 - remainingExistingImages();
+
+    if (files.length > available) {
+      alert('Maksimal 10 gambar per produk. Anda hanya dapat menambah ' + available + ' gambar lagi.');
+      this.value = '';
+      files = [];
+    }
+
+    imagePreview.innerHTML = '';
+    files.forEach(function (file, index) {
+      var item = document.createElement('div');
+      item.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:6px;font-size:11px;overflow:hidden';
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.alt = 'Preview gambar ' + (index + 1);
+      img.style.cssText = 'width:100%;height:76px;object-fit:cover;border-radius:5px;margin-bottom:5px';
+      img.onload = function () { URL.revokeObjectURL(img.src); };
+      var name = document.createElement('div');
+      name.textContent = file.name;
+      name.style.cssText = 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      item.appendChild(img);
+      item.appendChild(name);
+      imagePreview.appendChild(item);
+    });
+    updateImageHelp(files.length);
+  });
+
+  document.querySelectorAll('.image-remove-check').forEach(function (checkbox) {
+    checkbox.addEventListener('change', function () {
+      updateImageHelp(imageFiles && imageFiles.files ? imageFiles.files.length : 0);
+      var item = checkbox.closest('.product-image-item');
+      if (item) item.style.opacity = checkbox.checked ? '.45' : '1';
+    });
+  });
+
   // sinkronkan tampilan awal
   toggle();
+  updateImageHelp(0);
 })();
 </script>
 @endsection

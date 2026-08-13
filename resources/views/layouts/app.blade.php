@@ -41,6 +41,7 @@
 
 @include('partials.footer')
 @include('partials.mobile-nav')
+@include('partials.wholesale-popup')
 
 {{-- TOAST --}}
 <div id="toast"></div>

@@ -15,22 +15,22 @@ class SiteSettingSeeder extends Seeder
                 [
                     'title1' => 'NIVICO',
                     'title2' => 'Electronic Mart',
-                    'desc'   => 'Pusat kebutuhan elektronik, aksesoris, tools, kabel, microphone, adaptor dan perlengkapan rumah tangga dengan harga terbaik.',
-                    'image'  => 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=900&q=80&auto=format&fit=crop',
+                    'desc' => 'Pusat kebutuhan elektronik, aksesoris, tools, kabel, microphone, adaptor dan perlengkapan rumah tangga dengan harga terbaik.',
+                    'image' => 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=900&q=80&auto=format&fit=crop',
                     'cta_text' => '', 'cta_link' => '',
                 ],
                 [
                     'title1' => 'Flash Sale',
                     'title2' => 'Diskon 50%',
-                    'desc'   => 'Penawaran terbatas untuk produk elektronik pilihan!',
-                    'image'  => 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=900&q=80&auto=format&fit=crop',
+                    'desc' => 'Penawaran terbatas untuk produk elektronik pilihan!',
+                    'image' => 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=900&q=80&auto=format&fit=crop',
                     'cta_text' => 'Lihat Promo →', 'cta_link' => '/promo',
                 ],
                 [
                     'title1' => 'Koleksi',
                     'title2' => 'Terbaru 2024',
-                    'desc'   => 'Produk elektronik terbaru dengan kualitas premium dan harga terjangkau.',
-                    'image'  => 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=900&q=80&auto=format&fit=crop',
+                    'desc' => 'Produk elektronik terbaru dengan kualitas premium dan harga terjangkau.',
+                    'image' => 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=900&q=80&auto=format&fit=crop',
                     'cta_text' => 'Lihat Produk →', 'cta_link' => '/produk',
                 ],
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)],
@@ -72,9 +72,16 @@ class SiteSettingSeeder extends Seeder
             ['popup.enabled',  'boolean', 'popup', 'Aktifkan Popup', '1'],
             ['popup.tag',      'text',    'popup', 'Tag Atas',        'Selamat Datang!'],
             ['popup.title',    'text',    'popup', 'Judul Popup',     'Diskon Spesial<br>Untuk Kamu'],
-            ['popup.subtitle', 'textarea','popup', 'Subjudul',        'Gunakan kode di bawah ini dan hemat langsung di pembelian pertamamu!'],
-            ['popup.promo_code','text',   'popup', 'Kode Promo (kosong = ambil otomatis)', ''],
+            ['popup.subtitle', 'textarea', 'popup', 'Subjudul',        'Gunakan kode di bawah ini dan hemat langsung di pembelian pertamamu!'],
+            ['popup.promo_code', 'text',   'popup', 'Kode Promo (kosong = ambil otomatis)', ''],
             ['popup.btn_text', 'text',    'popup', 'Teks Tombol',     '🛒 Lihat Semua Promo'],
+
+            // ── POPUP GROSIR WHATSAPP ──
+            ['wholesale.enabled',     'boolean',  'popup', 'Aktifkan Popup Grosir', '1'],
+            ['wholesale.title',       'text',     'popup', 'Judul Popup Grosir', 'Butuh Harga Grosir?'],
+            ['wholesale.subtitle',    'textarea', 'popup', 'Subjudul Popup Grosir', 'Dapatkan penawaran khusus untuk pembelian dalam jumlah besar.'],
+            ['wholesale.button_text', 'text',     'popup', 'Teks Tombol Grosir', 'Hubungi via WhatsApp'],
+            ['wholesale.message',     'textarea', 'popup', 'Pesan WhatsApp Grosir', 'Halo NIVICO, saya ingin bertanya mengenai harga dan pemesanan grosir.'],
 
             // ── BRAND / LOGO ──
             ['brand.name',    'text',  'brand', 'Nama Toko',  'NIVICO'],
