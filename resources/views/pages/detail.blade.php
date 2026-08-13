@@ -25,13 +25,14 @@
       <div class="det-title">{{ $product->name }}</div>
       @php
         // Data varian untuk JS (hanya varian aktif). Produk single -> array kosong.
+        $hasAdminDiscount = $product->hasActiveDiscount();
         $variantData = $product->has_variants
             ? $product->variants->where('is_active', true)->values()->map(fn ($v) => [
                 'id'    => $v->id,
                 'name'  => $v->name,
-                'price' => (int) $v->price,
-                'old'   => $v->old_price ? (int) $v->old_price : null,
-                'disc'  => $v->discount_percent,
+                'price' => $product->discountedPrice((int) $v->price),
+                'old'   => $hasAdminDiscount ? (int) $v->price : ($v->old_price ? (int) $v->old_price : null),
+                'disc'  => $hasAdminDiscount ? $product->discount_percent : $v->discount_percent,
                 'stock' => (int) $v->stock,
                 'sku'   => $v->sku ?: $product->sku,
                 'image' => $v->image,
@@ -39,7 +40,10 @@
             : [];
         // Nilai awal tampilan: produk single pakai kolom produk; bervarian pakai varian termurah.
         $initStock = $product->has_variants ? 0 : (int) $product->stock;
-        $initPrice = $product->has_variants ? (int) $product->min_price : (int) $product->price;
+        $initPrice = $product->has_variants ? (int) $product->effective_min_price : (int) $product->effective_price;
+        $initOldPrice = $hasAdminDiscount
+            ? ($product->has_variants ? (int) $product->min_price : (int) $product->price)
+            : ($product->old_price ? (int) $product->old_price : null);
         $waRaw = trim($site['social.whatsapp'] ?? '') ?: trim($site['contact.phone'] ?? '');
         $waDigits = preg_replace('/\D+/', '', $waRaw);
         if (str_starts_with($waDigits, '0')) {
@@ -55,10 +59,10 @@
         <div style="display:flex;align-items:baseline;gap:4px;flex-wrap:wrap">
           <span class="det-price" id="det-price">Rp{{ number_format($initPrice, 0, ',', '.') }}</span>
           @if($product->has_variants && $product->hasPriceRange())
-            <span class="det-price-range" id="det-price-range" style="font-size:13px;color:var(--muted)">– Rp{{ number_format($product->max_price, 0, ',', '.') }}</span>
+            <span class="det-price-range" id="det-price-range" style="font-size:13px;color:var(--muted)">– Rp{{ number_format($product->effective_max_price, 0, ',', '.') }}</span>
           @endif
-          <span class="det-old" id="det-old" style="{{ $product->old_price ? '' : 'display:none' }}">@if($product->old_price)Rp{{ number_format($product->old_price, 0, ',', '.') }}@endif</span>
-          <span class="det-disc" id="det-disc" style="{{ $product->old_price ? '' : 'display:none' }}">@if($product->old_price)-{{ $product->discount_percent }}%@endif</span>
+          <span class="det-old" id="det-old" style="{{ $initOldPrice ? '' : 'display:none' }}">@if($initOldPrice)Rp{{ number_format($initOldPrice, 0, ',', '.') }}@endif</span>
+          <span class="det-disc" id="det-disc" style="{{ $initOldPrice ? '' : 'display:none' }}">@if($initOldPrice)-{{ $product->discount_percent }}%@endif</span>
         </div>
         <div class="det-stock" id="det-stock">
           @if($product->has_variants)
@@ -78,7 +82,7 @@
                 data-vid="{{ $v->id }}"
                 {{ $v->stock < 1 ? 'disabled' : '' }}>
                 <span class="var-opt-name">{{ $v->name }}</span>
-                <span class="var-opt-price">Rp{{ number_format($v->price, 0, ',', '.') }}</span>
+                <span class="var-opt-price">Rp{{ number_format($product->discountedPrice((int) $v->price), 0, ',', '.') }}@if($hasAdminDiscount) <del>Rp{{ number_format($v->price, 0, ',', '.') }}</del>@endif</span>
                 <span class="var-opt-stock">{{ $v->stock < 1 ? 'Habis' : 'Stok '.$v->stock }}</span>
               </button>
             @endforeach

@@ -26,6 +26,14 @@ class CartItem extends Model
     /** Harga efektif: dari varian bila ada, jika tidak dari produk. */
     public function effectivePrice(): int
     {
+        $basePrice = (int) ($this->variant->price ?? optional($this->product)->price ?? 0);
+
+        return $this->product ? $this->product->discountedPrice($basePrice) : $basePrice;
+    }
+
+    /** Harga sebelum diskon produk untuk kebutuhan tampilan harga coret. */
+    public function basePrice(): int
+    {
         return (int) ($this->variant->price ?? optional($this->product)->price ?? 0);
     }
 
@@ -35,6 +43,7 @@ class CartItem extends Model
         if ($this->product_variant_id) {
             return (int) ($this->variant->stock ?? 0);
         }
+
         return (int) (optional($this->product)->stock ?? 0);
     }
 
@@ -42,6 +51,7 @@ class CartItem extends Model
     public function effectiveWeight(): int
     {
         $w = $this->variant?->weight ?: optional($this->product)->weight;
+
         return (int) ($w ?: config('rajaongkir.default_weight'));
     }
 
@@ -49,6 +59,7 @@ class CartItem extends Model
     public function displayName(): string
     {
         $name = optional($this->product)->name ?? '';
+
         return $this->variant ? $name.' — '.$this->variant->name : $name;
     }
 }

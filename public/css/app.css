@@ -655,6 +655,7 @@ input,select,textarea{font-family:inherit}
 .var-opt:hover:not(.soldout):not(:disabled){border-color:var(--blue);box-shadow:0 2px 8px rgba(37,99,235,.12)}
 .var-opt .var-opt-name{font-size:13.5px;font-weight:600;color:var(--text)}
 .var-opt .var-opt-price{font-size:13px;font-weight:700;color:var(--blue)}
+.var-opt .var-opt-price del{font-size:10.5px;font-weight:400;color:var(--muted);margin-left:3px}
 .var-opt .var-opt-stock{font-size:11px;color:var(--muted)}
 .var-opt.on{border-color:var(--blue);background:#eff6ff;box-shadow:0 0 0 1px var(--blue) inset}
 .var-opt.on .var-opt-name{color:var(--blue2)}

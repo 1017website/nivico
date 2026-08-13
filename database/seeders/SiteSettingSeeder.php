@@ -67,6 +67,9 @@ class SiteSettingSeeder extends Seeder
             ['flashsale.enabled', 'boolean', 'flashsale', 'Aktifkan Countdown', '1'],
             ['flashsale.ends_at', 'text',    'flashsale', 'Waktu Berakhir (YYYY-MM-DD HH:MM)', now()->addDay()->format('Y-m-d H:i')],
             ['flashsale.label',   'text',    'flashsale', 'Label Countdown', 'Berakhir dalam:'],
+            ['flashsale.discount_enabled', 'boolean', 'flashsale', 'Aktifkan Diskon Produk', '0'],
+            ['flashsale.discount_scope',   'text',    'flashsale', 'Cakupan Diskon', 'selected'],
+            ['flashsale.discount_percent', 'number',  'flashsale', 'Persentase Diskon', '10'],
 
             // ── POPUP PROMO ──
             ['popup.enabled',  'boolean', 'popup', 'Aktifkan Popup', '1'],

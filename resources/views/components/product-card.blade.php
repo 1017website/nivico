@@ -4,10 +4,13 @@
     $disc = $product->discount_percent;
     $url = route('products.show', $product);
     $isSoldOut = $product->total_stock < 1;
+    $hasAdminDiscount = $product->hasActiveDiscount();
+    $displayMin = $product->effective_min_price;
+    $displayMax = $product->effective_max_price;
 @endphp
 
 <div class="pc{{ $isSoldOut ? ' soldout' : '' }}" onclick="location.href='{{ $url }}'">
-    @if($flash && $disc)
+    @if($disc)
         <div class="pc-b" style="background:var(--red)">-{{ $disc }}%</div>
     @elseif($product->badge)
         <div class="pc-b{{ $product->badge === 'HOT' ? ' hot' : '' }}">{{ $product->badge }}</div>
@@ -21,7 +24,18 @@
     </div>
     <div class="pc-body">
         <div class="pc-name">{{ $product->name }}</div>
-        <div class="pc-price">@if($product->has_variants && $product->hasPriceRange())Rp{{ number_format($product->min_price, 0, ',', '.') }} <span style="font-size:11px;color:var(--muted)">– Rp{{ number_format($product->max_price, 0, ',', '.') }}</span>@else Rp{{ number_format($product->min_price, 0, ',', '.') }}@if($product->old_price)<span class="pc-old">Rp{{ number_format($product->old_price, 0, ',', '.') }}</span>@endif @endif</div>
+        <div class="pc-price">
+          @if($product->has_variants && $product->hasPriceRange())
+            Rp{{ number_format($displayMin, 0, ',', '.') }} <span style="font-size:11px;color:var(--muted)">– Rp{{ number_format($displayMax, 0, ',', '.') }}</span>
+          @else
+            Rp{{ number_format($displayMin, 0, ',', '.') }}
+          @endif
+          @if($hasAdminDiscount)
+            <span class="pc-old">Rp{{ number_format($product->min_price, 0, ',', '.') }}@if($product->has_variants && $product->hasPriceRange()) – Rp{{ number_format($product->max_price, 0, ',', '.') }}@endif</span>
+          @elseif(!$product->has_variants && $product->old_price)
+            <span class="pc-old">Rp{{ number_format($product->old_price, 0, ',', '.') }}</span>
+          @endif
+        </div>
 
         @if($flash && !is_null($sold))
             <div class="fs-bar-wrap"><div class="fs-bar" style="width:{{ $sold }}%"></div></div>

@@ -1,14 +1,47 @@
 @extends('layouts.admin')
-@section('title', 'Flash Sale')
-@section('heading', 'Flash Sale')
+@section('title', 'Diskon Produk')
+@section('heading', 'Diskon Produk')
 
 @section('content')
 
 {{-- PENGATURAN COUNTDOWN --}}
 <div class="panel">
-  <div class="panel-hd"><h2>Pengaturan Flash Sale</h2><span class="chip ok">{{ $flashCount }} produk aktif</span></div>
+  <div class="panel-hd">
+    <h2>Pengaturan Diskon &amp; Flash Sale</h2>
+    <span class="chip ok">{{ $settings['discount_enabled'] ? ($settings['discount_scope'] === 'all' ? 'Semua produk didiskon' : $flashCount.' produk didiskon') : 'Diskon nonaktif' }}</span>
+  </div>
   <form method="POST" action="{{ route('admin.flashsale.settings') }}" style="padding:18px 22px">
     @csrf
+    <div class="discount-settings">
+      <div class="fld">
+        <label>Persentase Diskon</label>
+        <div class="discount-percent-input">
+          <input class="inp" type="number" name="discount_percent" value="{{ old('discount_percent', $settings['discount_percent']) }}" min="1" max="99" required>
+          <span>%</span>
+        </div>
+        @error('discount_percent')<small style="color:var(--red)">{{ $message }}</small>@enderror
+      </div>
+      <div class="fld">
+        <label>Berlaku Untuk</label>
+        <select class="inp" name="discount_scope" id="discount-scope" required>
+          <option value="all" @selected(old('discount_scope', $settings['discount_scope']) === 'all')>Semua produk</option>
+          <option value="selected" @selected(old('discount_scope', $settings['discount_scope']) === 'selected')>Produk terpilih</option>
+        </select>
+        <small id="discount-scope-help" style="color:var(--muted);font-size:11.5px;margin-top:4px"></small>
+      </div>
+      <div class="fld">
+        <label>Status Diskon</label>
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px">
+          <input type="hidden" name="discount_enabled" value="0">
+          <input type="checkbox" name="discount_enabled" value="1" @checked(old('discount_enabled', $settings['discount_enabled']))> Aktifkan diskon produk
+        </label>
+      </div>
+    </div>
+    <div class="discount-note">
+      Harga katalog tetap tersimpan sebagai harga asli. Saat diskon aktif, harga jual baru dihitung otomatis dan harga asli tampil dicoret di toko, keranjang, serta checkout.
+    </div>
+
+    <h3 class="settings-subtitle">Tampilan Flash Sale di Beranda</h3>
     <div class="frm-grid">
       <div class="fld">
         <label>Judul Section</label>
@@ -39,7 +72,10 @@
 {{-- DAFTAR PRODUK --}}
 <div class="panel">
   <div class="panel-hd">
-    <h2>Produk dalam Flash Sale</h2>
+    <div>
+      <h2>Produk Terpilih</h2>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Digunakan saat cakupan diskon diatur ke “Produk terpilih”.</div>
+    </div>
     @if($flashCount > 0)
     <form method="POST" action="{{ route('admin.flashsale.clear') }}" onsubmit="return confirm('Keluarkan semua produk dari Flash Sale?')">
       @csrf
@@ -63,7 +99,7 @@
       <button class="btn btn-gray btn-sm" type="submit" name="action" value="remove">Keluarkan Terpilih</button>
     </div>
   <div class="table-wrap"><table>
-    <thead><tr><th style="width:42px"><input type="checkbox" id="flash-select-all" aria-label="Pilih semua produk di halaman ini"></th><th></th><th>Produk</th><th>Harga</th><th>Stok</th><th>Flash Sale</th></tr></thead>
+    <thead><tr><th style="width:42px"><input type="checkbox" id="flash-select-all" aria-label="Pilih semua produk di halaman ini"></th><th></th><th>Produk</th><th>Harga Asli</th><th>Preview Diskon</th><th>Stok</th><th>Terpilih</th></tr></thead>
     <tbody>
       @forelse($products as $p)
         <tr>
@@ -73,6 +109,11 @@
           </td>
           <td style="font-weight:600">{{ $p->name }}<div style="font-size:11px;color:var(--muted);font-weight:400">{{ $p->sku }}</div></td>
           <td>Rp{{ number_format($p->price,0,',','.') }}</td>
+          <td>
+            @php $previewPrice = (int) round($p->price * (100 - (int) $settings['discount_percent']) / 100); @endphp
+            <strong style="color:var(--green)">Rp{{ number_format($previewPrice,0,',','.') }}</strong>
+            <small style="display:block;color:var(--muted)">-{{ $settings['discount_percent'] }}%</small>
+          </td>
           <td><span class="chip {{ $p->stock < 10 ? 'low' : 'ok' }}">{{ $p->stock }}</span></td>
           <td>
             <button form="flash-toggle-{{ $p->id }}" type="submit" class="toggle-sw {{ $p->is_flash_sale ? 'on' : '' }}" title="Klik untuk ubah">
@@ -81,7 +122,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="6" class="empty"><div class="ei">⚡</div>Belum ada produk. Tambahkan dengan menyalakan toggle.</td></tr>
+        <tr><td colspan="7" class="empty"><div class="ei">⚡</div>Belum ada produk. Tambahkan dengan menyalakan toggle.</td></tr>
       @endforelse
     </tbody>
   </table></div>
@@ -98,6 +139,13 @@
 .toggle-sw.on{background:var(--green)}
 .toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .toggle-sw.on .toggle-knob{transform:translateX(20px)}
+.discount-settings{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(220px,1fr) minmax(220px,1fr);gap:16px;align-items:start;padding:16px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px}
+.discount-percent-input{display:flex;align-items:center;max-width:180px}
+.discount-percent-input .inp{border-radius:7px 0 0 7px}
+.discount-percent-input span{align-self:stretch;display:flex;align-items:center;padding:0 13px;background:#dbeafe;color:var(--blue);font-weight:800;border:1px solid #bfdbfe;border-left:0;border-radius:0 7px 7px 0}
+.discount-note{font-size:12px;line-height:1.55;color:#475569;margin:9px 0 20px;padding-left:3px}
+.settings-subtitle{font-size:14px;margin:0 0 13px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+@media(max-width:800px){.discount-settings{grid-template-columns:1fr}}
 </style>
 @endpush
 @push('scripts')
@@ -107,6 +155,16 @@
   const checks = Array.from(document.querySelectorAll('.flash-product-check'));
   const count = document.getElementById('flash-selected-count');
   const form = document.getElementById('flash-bulk-form');
+  const scope = document.getElementById('discount-scope');
+  const scopeHelp = document.getElementById('discount-scope-help');
+  function syncScopeHelp(){
+    if (!scope || !scopeHelp) return;
+    scopeHelp.textContent = scope.value === 'all'
+      ? 'Diskon diterapkan otomatis ke seluruh produk aktif.'
+      : 'Diskon hanya diterapkan ke produk yang ditandai pada tabel di bawah.';
+  }
+  scope?.addEventListener('change', syncScopeHelp);
+  syncScopeHelp();
   if (!all || !form) return;
   function sync(){
     const selected = checks.filter(c => c.checked).length;

@@ -33,7 +33,12 @@
             <div class="c-inf">
               <div class="c-name">{{ $it->product->name }}@if($it->variant) <span style="font-size:12px;color:var(--muted)">— {{ $it->variant->name }}</span>@endif</div>
               <div class="c-cat">{{ $it->product->category->name }}</div>
-              <div class="c-price">Rp{{ number_format($it->effectivePrice() * $it->qty, 0, ',', '.') }}</div>
+              <div class="c-price">
+                Rp{{ number_format($it->effectivePrice() * $it->qty, 0, ',', '.') }}
+                @if($it->product->hasActiveDiscount())
+                  <del style="font-size:11px;color:var(--muted);font-weight:400;margin-left:4px">Rp{{ number_format($it->basePrice() * $it->qty, 0, ',', '.') }}</del>
+                @endif
+              </div>
             </div>
             <div class="c-rt">
               <form method="POST" action="{{ route('cart.remove', $it->id) }}">@csrf @method('DELETE')

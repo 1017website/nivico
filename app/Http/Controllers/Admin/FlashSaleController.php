@@ -27,6 +27,9 @@ class FlashSaleController extends Controller
             'ends_at' => SiteSetting::get('flashsale.ends_at', now()->addDay()->format('Y-m-d H:i')),
             'label' => SiteSetting::get('flashsale.label', 'Berakhir dalam:'),
             'title' => SiteSetting::get('section.flash_title', '⚡ Flash Sale'),
+            'discount_enabled' => SiteSetting::get('flashsale.discount_enabled', false),
+            'discount_scope' => SiteSetting::get('flashsale.discount_scope', 'selected'),
+            'discount_percent' => SiteSetting::get('flashsale.discount_percent', 10),
         ];
 
         return view('admin.flashsale.index', compact('products', 'flashCount', 'settings', 'q'))
@@ -41,12 +44,18 @@ class FlashSaleController extends Controller
             'ends_at' => 'nullable|string|max:20',
             'label' => 'nullable|string|max:60',
             'title' => 'nullable|string|max:60',
+            'discount_enabled' => 'nullable|boolean',
+            'discount_scope' => 'required|in:all,selected',
+            'discount_percent' => 'required|integer|min:1|max:99',
         ]);
 
         SiteSetting::put('flashsale.enabled', $request->boolean('enabled') ? '1' : '0', 'boolean', 'flashsale', 'Aktifkan Countdown');
         SiteSetting::put('flashsale.ends_at', $data['ends_at'] ?? '', 'text', 'flashsale', 'Waktu Berakhir (YYYY-MM-DD HH:MM)');
         SiteSetting::put('flashsale.label', $data['label'] ?? 'Berakhir dalam:', 'text', 'flashsale', 'Label Countdown');
         SiteSetting::put('section.flash_title', $data['title'] ?? '⚡ Flash Sale', 'text', 'label', 'Judul: Flash Sale');
+        SiteSetting::put('flashsale.discount_enabled', $request->boolean('discount_enabled') ? '1' : '0', 'boolean', 'flashsale', 'Aktifkan Diskon Produk');
+        SiteSetting::put('flashsale.discount_scope', $data['discount_scope'], 'text', 'flashsale', 'Cakupan Diskon');
+        SiteSetting::put('flashsale.discount_percent', (string) $data['discount_percent'], 'number', 'flashsale', 'Persentase Diskon');
 
         return back()->with('toast', '✓ Pengaturan Flash Sale disimpan.');
     }

@@ -71,7 +71,12 @@
               <div class="co-item">
                 <div class="co-iimg"><img src="{{ ($it->variant->image ?? null) ?: ($it->product->image ?: asset('images/placeholder-product.svg')) }}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg'"></div>
                 <div class="co-iname">{{ $it->product->name }}@if($it->variant) ({{ $it->variant->name }})@endif x{{ $it->qty }}</div>
-                <div class="co-iprice">Rp{{ number_format($it->effectivePrice() * $it->qty, 0, ',', '.') }}</div>
+                <div class="co-iprice">
+                  Rp{{ number_format($it->effectivePrice() * $it->qty, 0, ',', '.') }}
+                  @if($it->product->hasActiveDiscount())
+                    <del style="display:block;font-size:10.5px;color:var(--muted);font-weight:400">Rp{{ number_format($it->basePrice() * $it->qty, 0, ',', '.') }}</del>
+                  @endif
+                </div>
               </div>
             @endforeach
           </div>

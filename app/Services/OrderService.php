@@ -119,7 +119,8 @@ class OrderService
                 $v = $item->product_variant_id ? ($lockedVariants[$item->product_variant_id] ?? null) : null;
 
                 // Harga/SKU/nama dari varian bila ada, jika tidak dari produk
-                $unitPrice = (int) ($v?->price ?? $p->price);
+                $basePrice = (int) ($v?->price ?? $p->price);
+                $unitPrice = $p->discountedPrice($basePrice);
                 $sku = $v?->sku ?: $p->sku;
                 $varName = $v?->name;
 

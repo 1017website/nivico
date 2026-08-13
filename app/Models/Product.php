@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Services\ProductDiscountService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -106,6 +107,33 @@ class Product extends Model
         return (int) $this->price;
     }
 
+    /** Apakah diskon produk dari admin sedang berlaku pada produk ini. */
+    public function hasActiveDiscount(): bool
+    {
+        return app(ProductDiscountService::class)->appliesTo($this);
+    }
+
+    /** Terapkan diskon admin pada harga dasar tertentu milik produk ini. */
+    public function discountedPrice(int $basePrice): int
+    {
+        return app(ProductDiscountService::class)->priceFor($this, $basePrice);
+    }
+
+    public function getEffectivePriceAttribute(): int
+    {
+        return $this->discountedPrice((int) $this->price);
+    }
+
+    public function getEffectiveMinPriceAttribute(): int
+    {
+        return $this->discountedPrice($this->min_price);
+    }
+
+    public function getEffectiveMaxPriceAttribute(): int
+    {
+        return $this->discountedPrice($this->max_price);
+    }
+
     /** Total stok: jumlah stok varian aktif bila bervarian, jika tidak kolom stock. */
     public function getTotalStockAttribute(): int
     {
@@ -125,6 +153,10 @@ class Product extends Model
     // persentase diskon
     public function getDiscountPercentAttribute(): ?int
     {
+        if ($this->hasActiveDiscount()) {
+            return app(ProductDiscountService::class)->percentage();
+        }
+
         if (! $this->old_price || $this->old_price <= $this->price) {
             return null;
         }
