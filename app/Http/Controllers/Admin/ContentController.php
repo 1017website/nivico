@@ -17,6 +17,7 @@ class ContentController extends Controller
         'flashsale' => 'Flash Sale',
         'popup' => 'Popup',
         'brand' => 'Brand & Logo',
+        'tentang' => 'Tentang Kami',
         'kontak' => 'Kontak',
         'sosmed' => 'Sosial Media',
         'footer' => 'Footer',

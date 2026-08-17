@@ -91,6 +91,28 @@ class SiteSettingSeeder extends Seeder
             ['brand.tagline', 'text',  'brand', 'Tagline',    'Electronic Mart'],
             ['brand.logo',    'image', 'brand', 'Logo (kosong = teks)', ''],
 
+            // ── HALAMAN TENTANG KAMI ──
+            ['about.hero_title', 'text', 'tentang', 'Judul Banner', 'Tentang NIVICO Electronic Mart'],
+            ['about.hero_subtitle', 'textarea', 'tentang', 'Deskripsi Banner', 'Kami adalah toko elektronik terpercaya yang telah melayani ribuan pelanggan di seluruh Indonesia sejak 2015 dengan produk berkualitas dan harga terjangkau.'],
+            ['about.stats', 'json', 'tentang', 'Statistik', json_encode([
+                ['value' => '10K+', 'label' => 'Produk Tersedia'],
+                ['value' => '50K+', 'label' => 'Pelanggan Puas'],
+                ['value' => '9+', 'label' => 'Tahun Pengalaman'],
+                ['value' => '34', 'label' => 'Provinsi Terjangkau'],
+            ], JSON_UNESCAPED_UNICODE)],
+            ['about.story_title', 'text', 'tentang', 'Judul Cerita', 'Cerita Kami'],
+            ['about.story_body', 'textarea', 'tentang', 'Isi Cerita', "NIVICO Electronic Mart didirikan pada tahun 2015 di Surabaya, Jawa Timur. Berawal dari toko kecil yang menjual kabel dan aksesoris elektronik, kini kami telah berkembang menjadi salah satu toko elektronik online terpercaya di Indonesia.\n\nNama NIVICO terinspirasi dari semangat kami untuk memberikan nilai (value) terbaik kepada pelanggan melalui produk berkualitas dengan harga kompetitif. Kami berkomitmen untuk selalu menghadirkan produk original dan bersertifikat SNI."],
+            ['about.vision_mission_title', 'text', 'tentang', 'Judul Visi & Misi', 'Visi & Misi'],
+            ['about.vision_label', 'text', 'tentang', 'Label Visi', 'Visi:'],
+            ['about.vision_body', 'textarea', 'tentang', 'Isi Visi', 'Menjadi marketplace elektronik nomor satu di Indonesia yang dipercaya oleh jutaan pelanggan dan mitra bisnis.'],
+            ['about.mission_label', 'text', 'tentang', 'Label Misi', 'Misi:'],
+            ['about.missions', 'json', 'tentang', 'Daftar Misi', json_encode([
+                ['text' => 'Menyediakan produk elektronik berkualitas dengan harga terjangkau'],
+                ['text' => 'Memberikan pelayanan pelanggan terbaik yang responsif dan profesional'],
+                ['text' => 'Membangun ekosistem perdagangan elektronik yang transparan dan terpercaya'],
+                ['text' => 'Terus berinovasi untuk memberikan pengalaman belanja terbaik'],
+            ], JSON_UNESCAPED_UNICODE)],
+
             // ── KONTAK & SOSMED (footer) ──
             ['contact.address', 'textarea', 'kontak', 'Alamat',  'Surabaya, Jawa Timur, Indonesia'],
             ['contact.phone',   'text',     'kontak', 'Telepon', '+62 895-3393-46702'],

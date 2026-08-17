@@ -20,10 +20,10 @@ class OrderService
         protected ServiceFeeService $serviceFee,
     ) {}
 
-    /** Total berat keranjang dalam gram (untuk RajaOngkir). */
+    /** Total berat pengiriman dalam gram, termasuk berat volumetrik. */
     public function cartWeight($cart): int
     {
-        $w = (int) $cart->items->sum(fn ($i) => $i->effectiveWeight() * $i->qty);
+        $w = (int) $cart->items->sum(fn ($i) => $i->shippingWeight() * $i->qty);
 
         return max(1, $w);
     }

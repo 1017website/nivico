@@ -55,6 +55,37 @@ class CartItem extends Model
         return (int) ($w ?: config('rajaongkir.default_weight'));
     }
 
+    /** Dimensi kemasan efektif (cm), memakai varian lalu fallback ke produk. */
+    public function effectiveDimensions(): array
+    {
+        return [
+            'length' => (int) ($this->variant?->length ?: optional($this->product)->length ?: 0),
+            'width' => (int) ($this->variant?->width ?: optional($this->product)->width ?: 0),
+            'height' => (int) ($this->variant?->height ?: optional($this->product)->height ?: 0),
+        ];
+    }
+
+    /**
+     * Berat yang ditagihkan kurir: nilai terbesar antara berat aktual dan
+     * berat volumetrik. Bila dimensi belum lengkap, gunakan berat aktual.
+     */
+    public function shippingWeight(): int
+    {
+        $actualWeight = $this->effectiveWeight();
+        $dimensions = $this->effectiveDimensions();
+
+        if (in_array(0, $dimensions, true)) {
+            return $actualWeight;
+        }
+
+        $divisor = max(1, (int) config('rajaongkir.dimensional_divisor', 6000));
+        $volumetricWeight = (int) ceil(
+            ($dimensions['length'] * $dimensions['width'] * $dimensions['height'] * 1000) / $divisor
+        );
+
+        return max($actualWeight, $volumetricWeight);
+    }
+
     /** Label tampilan: nama produk + varian. */
     public function displayName(): string
     {

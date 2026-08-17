@@ -3,7 +3,7 @@
 @section('heading', $product->exists ? 'Edit Produk' : 'Tambah Produk')
 
 @section('content')
-<div class="panel" style="max-width:840px">
+<div class="panel" style="max-width:1180px">
   <div class="panel-hd"><h2>{{ $product->exists ? 'Edit: '.$product->name : 'Produk Baru' }}</h2><a class="btn btn-sm btn-gray" href="{{ route('admin.products.index') }}">← Kembali</a></div>
   <div style="padding:24px">
     <form method="POST" action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}" enctype="multipart/form-data">
@@ -27,7 +27,16 @@
         <div class="fld"><label>Harga Coret / Lama (Rp, opsional)</label><input class="inp" type="number" name="old_price" value="{{ old('old_price', $product->old_price) }}" min="0"></div>
 
         <div class="fld" id="fld-stock"><label>Stok</label><input class="inp" type="number" name="stock" value="{{ old('stock', $product->stock ?? 0) }}" min="0"></div>
-        <div class="fld"><label>Berat Produk (gram) <span style="color:var(--red)">*</span></label><input class="inp" type="number" name="weight" value="{{ old('weight', $product->weight ?? 1000) }}" min="1" max="1000000" required><small style="color:var(--muted)">Digunakan untuk menghitung biaya pengiriman. Contoh: 1 kg = 1000 gram.</small></div>
+        <div class="fld"><label>Berat Produk / Default (gram) <span style="color:var(--red)">*</span></label><input class="inp" id="product-weight" type="number" name="weight" value="{{ old('weight', $product->weight ?? 1000) }}" min="1" max="1000000" required><small style="color:var(--muted)">Dipakai untuk produk tanpa varian dan sebagai nilai awal varian baru.</small></div>
+        <div class="fld">
+          <label>Dimensi Kemasan / Default (cm)</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <input class="inp" id="product-length" type="number" name="length" value="{{ old('length', $product->length) }}" min="1" max="1000" placeholder="Panjang" aria-label="Panjang kemasan">
+            <input class="inp" id="product-width" type="number" name="width" value="{{ old('width', $product->width) }}" min="1" max="1000" placeholder="Lebar" aria-label="Lebar kemasan">
+            <input class="inp" id="product-height" type="number" name="height" value="{{ old('height', $product->height) }}" min="1" max="1000" placeholder="Tinggi" aria-label="Tinggi kemasan">
+          </div>
+          <small style="color:var(--muted)">Isi lengkap panjang × lebar × tinggi. Kosongkan semuanya bila tidak digunakan.</small>
+        </div>
         <div class="fld"><label>Badge</label>
           <select class="inp" name="badge">
             <option value="">Tidak ada</option>
@@ -88,25 +97,32 @@
       <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
         <label style="font-weight:600;display:flex;align-items:center;gap:8px">
           <input type="checkbox" name="has_variants" id="has-variants" value="1" @checked($hasVar)>
-          Produk ini punya varian (mis. ukuran/warna, harga & stok per varian)
+          Produk ini punya varian (harga, stok, berat & dimensi per varian)
         </label>
 
         <div id="variants-box" style="margin-top:14px;{{ $hasVar ? '' : 'display:none' }}">
-          <table style="width:100%;border-collapse:collapse;font-size:13px" id="variants-table">
+          <div style="overflow-x:auto;padding-bottom:4px">
+          <table style="width:100%;min-width:1180px;border-collapse:collapse;font-size:13px" id="variants-table">
             <thead>
               <tr style="text-align:left;color:var(--muted)">
-                <th style="padding:6px 8px;width:26%">Nama Varian</th>
-                <th style="padding:6px 8px;width:18%">SKU</th>
-                <th style="padding:6px 8px;width:18%">Harga (Rp)</th>
-                <th style="padding:6px 8px;width:16%">Harga Coret</th>
-                <th style="padding:6px 8px;width:12%">Stok</th>
-                <th style="padding:6px 8px;width:10%"></th>
+                <th style="padding:6px 8px">Nama Varian</th>
+                <th style="padding:6px 8px">SKU</th>
+                <th style="padding:6px 8px">Harga (Rp)</th>
+                <th style="padding:6px 8px">Harga Coret</th>
+                <th style="padding:6px 8px">Stok</th>
+                <th style="padding:6px 8px">Berat (g)</th>
+                <th style="padding:6px 8px">Panjang (cm)</th>
+                <th style="padding:6px 8px">Lebar (cm)</th>
+                <th style="padding:6px 8px">Tinggi (cm)</th>
+                <th style="padding:6px 8px"></th>
               </tr>
             </thead>
             <tbody id="variants-body">
               @php
                 $existing = old('variants', $product->exists ? $product->variants->map(fn($v)=>[
                   'id'=>$v->id,'name'=>$v->name,'sku'=>$v->sku,'price'=>$v->price,'old_price'=>$v->old_price,'stock'=>$v->stock,
+                  'weight'=>$v->weight ?: $product->weight,
+                  'length'=>$v->length ?: $product->length,'width'=>$v->width ?: $product->width,'height'=>$v->height ?: $product->height,
                 ])->all() : []);
               @endphp
               @foreach($existing as $i => $v)
@@ -116,13 +132,18 @@
                   <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[{{ $i }}][price]" value="{{ $v['price'] ?? '' }}"></td>
                   <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[{{ $i }}][old_price]" value="{{ $v['old_price'] ?? '' }}"></td>
                   <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[{{ $i }}][stock]" value="{{ $v['stock'] ?? '' }}"></td>
+                  <td style="padding:4px"><input class="inp" type="number" min="1" max="1000000" name="variants[{{ $i }}][weight]" value="{{ $v['weight'] ?? old('weight', $product->weight ?? 1000) }}"></td>
+                  <td style="padding:4px"><input class="inp" type="number" min="1" max="1000" name="variants[{{ $i }}][length]" value="{{ $v['length'] ?? '' }}"></td>
+                  <td style="padding:4px"><input class="inp" type="number" min="1" max="1000" name="variants[{{ $i }}][width]" value="{{ $v['width'] ?? '' }}"></td>
+                  <td style="padding:4px"><input class="inp" type="number" min="1" max="1000" name="variants[{{ $i }}][height]" value="{{ $v['height'] ?? '' }}"></td>
                   <td style="padding:4px"><button type="button" class="btn btn-sm btn-gray var-del">Hapus</button></td>
                 </tr>
               @endforeach
             </tbody>
           </table>
+          </div>
           <button type="button" class="btn btn-sm btn-gray" id="add-variant" style="margin-top:8px">+ Tambah Varian</button>
-          <p style="font-size:12px;color:var(--muted);margin-top:6px">Saat mode varian aktif, harga & stok produk diabaikan — yang dipakai harga & stok per varian.</p>
+          <p style="font-size:12px;color:var(--muted);margin-top:6px">Saat mode varian aktif, harga, stok, berat, dan dimensi pengiriman dibaca dari varian yang dipilih pelanggan.</p>
         </div>
       </div>
 
@@ -133,6 +154,10 @@
           <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[__IDX__][price]"></td>
           <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[__IDX__][old_price]"></td>
           <td style="padding:4px"><input class="inp" type="number" min="0" name="variants[__IDX__][stock]"></td>
+          <td style="padding:4px"><input class="inp variant-weight" type="number" min="1" max="1000000" name="variants[__IDX__][weight]"></td>
+          <td style="padding:4px"><input class="inp variant-length" type="number" min="1" max="1000" name="variants[__IDX__][length]"></td>
+          <td style="padding:4px"><input class="inp variant-width" type="number" min="1" max="1000" name="variants[__IDX__][width]"></td>
+          <td style="padding:4px"><input class="inp variant-height" type="number" min="1" max="1000" name="variants[__IDX__][height]"></td>
           <td style="padding:4px"><button type="button" class="btn btn-sm btn-gray var-del">Hapus</button></td>
         </tr>
       </template>
@@ -154,6 +179,10 @@
   var addBtn = document.getElementById('add-variant');
   var fldPrice = document.getElementById('fld-price');
   var fldStock = document.getElementById('fld-stock');
+  var productWeight = document.getElementById('product-weight');
+  var productLength = document.getElementById('product-length');
+  var productWidth = document.getElementById('product-width');
+  var productHeight = document.getElementById('product-height');
   var imageFiles = document.getElementById('image-files');
   var imageHelp = document.getElementById('image-help');
   var imagePreview = document.getElementById('new-image-preview');
@@ -174,6 +203,10 @@
     tr.innerHTML = html.trim();
     var row = tr.firstChild;
     body.appendChild(row);
+    row.querySelector('.variant-weight').value = productWeight ? productWeight.value : '1000';
+    row.querySelector('.variant-length').value = productLength ? productLength.value : '';
+    row.querySelector('.variant-width').value = productWidth ? productWidth.value : '';
+    row.querySelector('.variant-height').value = productHeight ? productHeight.value : '';
   }
 
   if (chk) chk.addEventListener('change', toggle);

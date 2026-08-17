@@ -31,6 +31,8 @@
                 'hero.slides'   => ['title1'=>'Judul Baris 1','title2'=>'Judul Baris 2','desc'=>'Deskripsi','image'=>'URL Gambar','cta_text'=>'Teks Tombol','cta_link'=>'Link Tombol'],
                 'hero.perks'    => ['t1'=>'Baris 1','t2'=>'Baris 2'],
                 'banner.promos' => ['tag'=>'Tag','title'=>'Judul (boleh <br>)','btn'=>'Teks Tombol','link'=>'Link','image'=>'URL Gambar'],
+                'about.stats'   => ['value'=>'Angka','label'=>'Keterangan'],
+                'about.missions'=> ['text'=>'Isi Misi'],
                 default         => [],
               };
               $rows = is_array($val) ? $val : [];
@@ -45,7 +47,7 @@
                     @foreach($fieldDefs as $fk => $flabel)
                       <div class="fld">
                         <label>{{ $flabel }}</label>
-                        @if($fk === 'desc' || $fk === 'title')
+                        @if(in_array($fk, ['desc', 'title', 'text']))
                           <textarea class="inp" rows="2" name="json[{{ $s->key }}][{{ $i }}][{{ $fk }}]">{{ $row[$fk] ?? '' }}</textarea>
                         @else
                           <input class="inp" type="text" name="json[{{ $s->key }}][{{ $i }}][{{ $fk }}]" value="{{ $row[$fk] ?? '' }}">
@@ -64,7 +66,7 @@
                   @foreach($fieldDefs as $fk => $flabel)
                     <div class="fld">
                       <label>{{ $flabel }}</label>
-                      @if($fk === 'desc' || $fk === 'title')
+                      @if(in_array($fk, ['desc', 'title', 'text']))
                         <textarea class="inp" rows="2" data-name="json[{{ $s->key }}][__IDX__][{{ $fk }}]"></textarea>
                       @else
                         <input class="inp" type="text" data-name="json[{{ $s->key }}][__IDX__][{{ $fk }}]">

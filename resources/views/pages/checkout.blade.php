@@ -81,7 +81,7 @@
             @endforeach
           </div>
           <div class="sum-row" style="margin-top:10px"><span>Subtotal</span><span>Rp{{ number_format($subtotal, 0, ',', '.') }}</span></div>
-          <div class="sum-row"><span>Berat Total</span><span>{{ number_format($weight) }} gram</span></div>
+          <div class="sum-row"><span>Berat Pengiriman</span><span>{{ number_format($weight) }} gram</span></div>
           <div class="sum-row"><span>Ongkos Kirim</span><span id="sum-ship">—</span></div>
           <div class="sum-row"><span id="sum-discount-label">Diskon{{ $cart->promo ? ' ('.$cart->promo->code.')' : '' }}</span><span id="sum-discount" style="color:var(--green)">−Rp{{ number_format($discount, 0, ',', '.') }}</span></div>
           <div class="sum-row"><span>Biaya Layanan</span><span id="sum-service-fee">Rp{{ number_format($estimatedServiceFee, 0, ',', '.') }}</span></div>

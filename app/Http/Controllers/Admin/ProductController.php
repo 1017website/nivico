@@ -117,6 +117,10 @@ class ProductController extends Controller
                 'price' => (int) ($r['price'] ?? 0),
                 'old_price' => ($r['old_price'] ?? '') !== '' ? (int) $r['old_price'] : null,
                 'stock' => (int) ($r['stock'] ?? 0),
+                'weight' => (int) ($r['weight'] ?? $product->weight),
+                'length' => ($r['length'] ?? '') !== '' ? (int) $r['length'] : null,
+                'width' => ($r['width'] ?? '') !== '' ? (int) $r['width'] : null,
+                'height' => ($r['height'] ?? '') !== '' ? (int) $r['height'] : null,
                 'sort_order' => $i,
                 'is_active' => isset($r['is_active']) ? (bool) $r['is_active'] : true,
             ];
@@ -155,6 +159,9 @@ class ProductController extends Controller
             'sku' => 'required|string|max:60|unique:products,sku'.($id ? ",$id" : ''),
             'old_price' => 'nullable|integer|min:0',
             'weight' => 'required|integer|min:1|max:1000000',
+            'length' => 'nullable|integer|min:1|max:1000|required_with:width,height',
+            'width' => 'nullable|integer|min:1|max:1000|required_with:length,height',
+            'height' => 'nullable|integer|min:1|max:1000|required_with:length,width',
             'badge' => 'nullable|in:NEW,HOT',
             'description' => 'required|string|min:20|max:5000',
             'rating' => 'nullable|numeric|min:0|max:5',
@@ -180,6 +187,10 @@ class ProductController extends Controller
             $rules['variants.*.stock'] = 'required|integer|min:0';
             $rules['variants.*.sku'] = 'nullable|string|max:80';
             $rules['variants.*.old_price'] = 'nullable|integer|min:0';
+            $rules['variants.*.weight'] = 'required|integer|min:1|max:1000000';
+            $rules['variants.*.length'] = 'nullable|integer|min:1|max:1000|required_with:variants.*.width,variants.*.height';
+            $rules['variants.*.width'] = 'nullable|integer|min:1|max:1000|required_with:variants.*.length,variants.*.height';
+            $rules['variants.*.height'] = 'nullable|integer|min:1|max:1000|required_with:variants.*.length,variants.*.width';
         } else {
             $rules['price'] = 'required|integer|min:0';
             $rules['stock'] = 'required|integer|min:0';
